@@ -47,6 +47,28 @@ services:
       - "8000:8000"
     networks:
       - network
+    container_name: backend
+
+  daphne:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile.daphne
+    container_name: 'daphne'
+    volumes:
+      - ./backend/:/app/backend/
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    ports:
+      - "8001:8001"
+    networks:
+      - network
+
 
 volumes:
   postgres_data:
