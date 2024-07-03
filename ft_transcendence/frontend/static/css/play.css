@@ -1,0 +1,512 @@
+.play_modal {
+  display: grid;
+  grid-template-rows: 0.5fr 1fr 0.5fr;
+  grid-template-columns: 0.5fr 2fr 0.5fr;
+  grid-template-areas:
+    '. title .'
+    '. image .'
+    '. move .';
+}
+
+.play_modal h2 {
+  color: var(--item-color);
+  grid-area: title;
+  font-size: calc(1vw + 2vh + 0.5vmin);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.local_play_modal_img_container {
+  grid-area: image;
+  background-image: url('/static/assets/localPlayModalImg.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+}
+
+.remote_play_modal_img_container {
+  grid-area: image;
+  background-image: url('/static/assets/remotePlayModalImg.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+}
+
+.play_modal_text {
+  margin-top: 0.6em;
+  display: flex;
+  grid-area: move;
+  color: var(--item-color);
+  text-align: center;
+  justify-content: space-around;
+  font-size: calc(0.7vw + 1vh + 0.5vmin);
+  white-space: nowrap;
+}
+
+/* tournament */
+
+.tournament_container {
+  align-content: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  padding: 2rem;
+}
+
+.tournament_container_flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  padding: 2rem;
+}
+
+.input_box {
+  width: 20rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--profile-color);
+  border-radius: 5px;
+  border: 1px solid var(--black-color);
+  text-align: left;
+  font-size: 0.9em;
+  padding: 0.5rem 1rem;
+}
+
+.input_box:focus {
+  outline: none;
+  box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
+}
+
+.tournament_modal {
+  width: auto;
+  height: auto;
+  background-color: rgba(0, 0, 0, 0.9);
+  border-radius: 3%;
+  box-shadow: 0 0 2px 2px rgba(253, 252, 252, 0.327);
+  position: absolute;
+  padding: 2rem;
+}
+
+.tournament_modal_flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  color: var(--profile-color);
+}
+
+.tournament_list {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.tournament_player_box {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tournament_player {
+  width: 8vw;
+  height: 8vw;
+  --player-height: 8vw;
+  /* padding: 1.25rem; */
+  margin: 0;
+  border: 2px solid var(--profile-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tournament_player img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tournament_player_name {
+  background-color: var(--profile-background);
+  color: var(--black-color);
+  border-radius: 15px;
+  padding: 0.4rem;
+  text-align: center;
+
+  cursor: pointer;
+  transition: filter 0.3s ease;
+}
+
+.tournament_player_name:hover {
+  filter: brightness(90%);
+}
+
+[data-toggle='tooltip'] {
+  position: relative;
+  display: inline-block;
+}
+
+[data-toggle='tooltip']::before {
+  content: '';
+  position: absolute;
+  top: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0.25rem 0.3rem 0 0.3rem;
+  border-style: solid;
+  border-color: #181919 transparent transparent transparent;
+  z-index: 99;
+  opacity: 0;
+}
+
+[data-placement='bottom']::before {
+  top: 100%;
+  margin-top: 0.5rem;
+  transform: translateX(-50%) translatey(-100%) rotate(-180deg);
+}
+
+[data-toggle='tooltip']::after {
+  content: attr(tooltip-title);
+  position: absolute;
+  left: 50%;
+  top: -0.3rem;
+  transform: translateX(-50%) translateY(-100%);
+  text-align: center;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.9);
+  border-radius: 5px;
+  padding: 0.25rem 0.125rem;
+  font-size: 1rem;
+  min-width: 7rem;
+  pointer-events: none;
+  padding: 0.25rem 0.25rem;
+  z-index: 99;
+  opacity: 0;
+}
+
+[data-placement='bottom']::after {
+  top: 100%;
+  margin-top: 0.5rem;
+  transform: translateX(-50%) translateY(0%);
+}
+
+[data-toggle='tooltip']:hover::after,
+[data-toggle='tooltip']:hover::before {
+  opacity: 1;
+}
+
+[data-toggle='tooltip']:hover::after,
+[data-toggle='tooltip']:hover::before,
+.show-tooltip::after,
+.show-tooltip::before {
+  opacity: 1;
+}
+
+.no-tooltip[data-toggle='tooltip']:hover::before,
+.no-tooltip[data-toggle='tooltip']:hover::after {
+  opacity: 0;
+}
+
+.tournament_left {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.tournament_right {
+  display: flex;
+  flex-direction: row;
+}
+
+.tournament_left_parent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 3.125rem;
+}
+
+.tournament_right_parent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 3.125rem;
+}
+
+.tournament_left_parent::after {
+  position: absolute;
+  content: '';
+  width: 1.5rem;
+  height: 0.125rem;
+  left: 0;
+  top: 45%;
+  background-color: white;
+  transform: translateX(-100%);
+}
+
+.tournament_right_parent::before {
+  content: '';
+  position: absolute;
+  background-color: white;
+  right: 0;
+  top: calc(var(--player-height) * 0.45);
+  transform: translateX(100%);
+  width: 1.5rem;
+  height: 0.125rem;
+}
+
+.tournament_right_parent::after {
+  position: absolute;
+  content: '';
+  width: 1.5rem;
+  height: 0.125rem;
+  left: 0;
+  top: 30%;
+  background-color: white;
+  transform: translateX(-100%);
+}
+
+/* childrens는 left, right 분리 안해도 될듯 */
+.tournament_left_childrens,
+.tournament_right_childrens {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3rem;
+}
+
+.tournament_left_child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+  position: relative;
+}
+
+.tournament_left_child::before {
+  content: '';
+  position: absolute;
+  background-color: white;
+  right: 0;
+  top: 30%;
+  transform: translateX(100%);
+  width: 1.5rem;
+  height: 0.125rem;
+}
+
+.tournament_left_child::after {
+  content: '';
+  position: absolute;
+  background-color: white;
+  right: -1.5rem;
+  height: calc(50% + 4rem);
+  width: 0.125rem;
+  top: 30%;
+}
+
+.tournament_right_child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+  position: relative;
+}
+
+.tournament_right_child::after {
+  content: '';
+  position: absolute;
+  background-color: white;
+  left: -1.5rem;
+  height: calc(50% + 4rem);
+  width: 0.125rem;
+  top: 30%;
+}
+
+.left_last_child::after {
+  content: '';
+  position: absolute;
+  background-color: white;
+  right: -1.5rem;
+  height: calc(50% + 4rem);
+  width: 0.125rem;
+  top: 30%;
+  transform: translateY(-100%);
+}
+
+.right_last_child::after {
+  content: '';
+  position: absolute;
+  background-color: white;
+  left: -1.5rem;
+  height: calc(50% + 4rem);
+  width: 0.125rem;
+  top: 30%;
+  transform: translateY(-100%);
+}
+
+.remove-before::before {
+  display: none;
+}
+
+.remove-after::after {
+  display: none;
+}
+
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(-50%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.play_nav {
+  animation: slideInFromRight 0.8s ease-in-out;
+  will-change: transform, opacity;
+}
+
+.local_modal_heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  grid-area: title;
+}
+
+.local_modal_heading2 {
+  margin-top: 1em;
+}
+
+.local_modal_heading3_container {
+  width: 100%;
+  margin-top: 1em;
+  color: var(--item-color);
+  display: flex;
+  justify-content: space-around;
+}
+
+.local_modal_heading3 {
+  display: inline;
+}
+
+.loading_spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  font-size: calc(1vw + 2vh + 0.5vmin);
+}
+
+.spinner {
+  border: 4px solid rgb(255, 255, 255);
+  border-left-color: #000;
+  border-radius: 50%;
+  width: 5rem;
+  height: 5rem;
+  animation: spin 1s linear infinite;
+}
+
+#loading_spinner p {
+  color: var(--item-color);
+}
+
+#countdown_container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 5em;
+  color: var(--item-color);
+  z-index: 1000;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#finalRoundContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 3em;
+  color: white;
+  z-index: 1000;
+}
+
+#finalRoundTop,
+#finalRoundBottom {
+  position: absolute;
+  width: 100%;
+  height: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 5rem;
+  overflow: hidden;
+}
+
+#finalRoundTop {
+  top: 0;
+  background: rgba(0, 0, 0, 0.8);
+  clip-path: inset(0 0 50% 0);
+  animation: slideTop 1s forwards, fadeOut 1s 2s forwards;
+}
+
+#finalRoundBottom {
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  clip-path: inset(50% 0 0 0);
+  animation: slideBottom 1s forwards, fadeOut 1s 2s forwards;
+}
+
+@keyframes slideTop {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(50%);
+  }
+}
+
+@keyframes slideBottom {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

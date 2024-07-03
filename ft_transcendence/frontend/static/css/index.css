@@ -1,0 +1,109 @@
+@import url(./play.css);
+@import url(./reset.css);
+@import url(./main.css);
+@import url(./error.css);
+@import url(./profile.css);
+@import url('./game.css');
+@import url('./2fa.css');
+
+:root {
+  --disabled-background-color: #3130a1;
+  --button-font-color: #2148c0;
+  --button-hover-color: #0d2d8e;
+  --disabled-button-background-color: grey;
+  --item-color: white;
+  --profile-color: #f6faf9;
+  --profile-background: #ffcd29;
+  --black-color: black;
+  --friend_state-color: #27da7b;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  font-family: 'Ubuntu', sans-serif;
+}
+
+body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: 20% 40% 30% 10%;
+  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-areas:
+    'header header header'
+    'content content nav'
+    'content content nav'
+    '. . .';
+}
+
+header {
+  grid-area: header;
+  color: var(--black-color);
+  margin-top: 7%;
+  margin-left: 15%;
+  text-align: left;
+}
+
+section {
+  grid-area: content;
+  padding: 0.5em;
+  margin-left: 11rem;
+}
+
+.modal_content {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(18, 18, 18, 0.5);
+  border-radius: 30px;
+}
+
+.active_tab {
+  color: var(--profile-background);
+}
+
+nav {
+  grid-area: nav;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  padding: 1.25rem;
+  margin-top: 80%;
+}
+
+.nav__link {
+  font-size: calc(1vw + 2vh + 0.5vmin);
+  padding: 0.3em 0.5em;
+  text-decoration: none;
+  color: var(--item-color);
+  transition: background-color 0.3s ease-in-out;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nav__link:hover {
+  color: var(--black-color);
+}
+
+a {
+  text-decoration: none;
+}
+
+body.error-background {
+  background-image: url('/static/assets/errorBackgroundImg.png');
+}
+
+body.normal-background {
+  background-image: url('/static/assets/normalBackgroundImg.png');
+}
