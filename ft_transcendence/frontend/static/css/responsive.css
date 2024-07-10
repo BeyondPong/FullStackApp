@@ -34,7 +34,7 @@
 
   .history_container {
     position: relative;
-    padding-top: 2.6rem;
+    /* padding-top: 2.6rem; */
   }
 
   #gdpr {
@@ -121,8 +121,8 @@
   }
 
   .table_box thead {
-    display: table;
-    position: absolute;
+    /* display: table; */
+    /* position: absolute; */
     top: 0;
     width: 100%;
   }

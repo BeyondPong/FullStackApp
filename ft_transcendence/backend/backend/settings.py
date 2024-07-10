@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 OAUTH_CLIENT_ID = config("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = config("OAUTH_CLIENT_SECRET")
 OAUTH_REDIRECT_URI = config(
-    "OAUTH_REDIRECT_URI", default="https://localhost:3000/login_code/"
+    "OAUTH_REDIRECT_URI", default="http://localhost:5173/login_code/"
 )
 OAUTH_TOKEN_URL = config("OAUTH_TOKEN_URL")
 OAUTH_AUTHORIZATION_URL = config("OAUTH_AUTHORIZATION_URL")
@@ -34,7 +34,7 @@ AUTH_USER_MODEL = "user.Member"
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-!^d$%0r#%r91%*)1yxp^&un_)$bag*1o&41+xj408)$qchx_gr"
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,7 +42,7 @@ DEBUG = True
 # for postman test(redirect by slash'/')
 APPEND_SLASH = False
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "backend" ,config("ALLOWED_HOST")]
 
 # for 2fa SMTP setting
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     "corsheaders",
+    "csp",
     "login",
     "game",
     "user",
@@ -73,6 +74,8 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "csp.middleware.CSPMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -86,16 +89,12 @@ MIDDLEWARE = [
 
 # DRF 설정 추가
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "login.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("login.authentication.JWTAuthentication",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
 
-CSRF_TRUSTED_ORIGINS = ["localhost:8000"]
+CSRF_TRUSTED_ORIGINS = ["localhost:8000", config("CSRF_TRUSTED_ORIGIN")]
 
 # CSRF_COOKIE_DOMAIN = "bluemix.net"
 
@@ -105,11 +104,12 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "https://localhost:3000",
+    config("CORS_ALLOWED_ORIGIN"),
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -208,7 +208,7 @@ CACHES = {
         "LOCATION": "redis://redis:6379/1",  # Redis 서버 주소 및 데이터베이스 번호
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        },
     }
 }
 
@@ -222,6 +222,7 @@ CHANNEL_LAYERS = {
     },
 }
 
+# debug
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -236,3 +237,18 @@ LOGGING = {
     },
 }
 
+# csp setting
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = (
+    "'self'",
+    "https://fonts.googleapis.com",  # Google Fonts
+)
+CSP_IMG_SRC = (
+    "'self'",
+    "https://res.cloudinary.com",  # Cloudinary
+)
+CSP_FONT_SRC = (
+    "'self'",
+    "https://fonts.gstatic.com",  # Google Fonts
+)

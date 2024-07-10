@@ -29,11 +29,6 @@ services:
     container_name: 'redis'
     expose:
       - "6379"
-    # healthcheck:
-    #   test: [ "CMD", "redis-cli", "ping" ]
-    #   interval: 10s
-    #   timeout: 3s
-    #   retries: 5
     networks:
       - app-network
 
@@ -43,8 +38,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # redis:
-      #   condition: service_healthy
     env_file:
       - .env
     working_dir: /backend
@@ -53,24 +46,22 @@ services:
     networks:
       - app-network
 
-  # daphne:
-  #   build:
-  #     context: ./backend/
-  #     dockerfile: Dockerfile.daphne
-  #   container_name: 'daphne'
-  #   volumes:
-  #     - ./backend/:/app/backend/
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     # redis:
-  #     #   condition: service_healthy
-  #   ports:
-  #     - "8001:8001"
-  #   networks:
-  #     - app-network
+  daphne:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile.daphne
+    container_name: 'daphne'
+    volumes:
+      - ./backend/:/app/backend/
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
 
   nginx:
     container_name: 'nginx'
@@ -80,53 +71,18 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html
     ports:
-      - "80:80"
-      - "443:443"
+      # - "80:80"
+      # - "443:443"
       - "3000:3000"
     networks:
       - app-network
     env_file:
       - .env
-    # healthcheck:
-    #   test: [ "CMD-SHELL", "curl -k https://localhost:3000 || exit 1" ]
-    #   interval: 5s
-    #   timeout: 30s
-    #   retries: 3
-    #   start_period: 1s
     depends_on:
       - backend
-    # django:
-    #   build:
-    #     context: ./backend/
-    #     dockerfile: dockerfile
-    #   container_name: 'django'
-    #   volumes: ./backend:/app/
-    #   ports:
-    #     - "8000:8000"
-    #   depends_on:
-    #     - db
-    #   env_file:
-    #     - .env
-    #   networks:
-    #     - app-network
-    #   restart: on-failure
-
-    # db:
-    #   image: postgres:bullseye
-    #   container_name: 'db'
-    #   environment:
-    #     - .env
-    #   ports:
-    #     - "5432:5432"
-    #   networks:
-    #     - app-network
-    #   volumes:
-    #     - postgres_data:/var/lib/postgresql/data/
-
 
 volumes:
   postgres_data:
-  pgadmin_data:
 
 
 networks:

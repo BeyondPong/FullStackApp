@@ -122,9 +122,7 @@ export default class extends AbstractView {
       const data = await getProfileData();
       this.realname = data.nickname;
       const token = localStorage.getItem('2FA');
-      WebSocketManager.connectGameSocket(
-        `ws://localhost:8000/ws/play/${mode}/${roomName}/${this.realname}/?token=${token}`,
-      );
+      WebSocketManager.connectGameSocket(`${window.DAPHNE_URL}/play/${mode}/${roomName}/${this.realname}/?token=${token}`);
       let socket = WebSocketManager.returnGameSocket();
       const loadingSpinner = document.getElementById('loading_spinner');
       socket.onopen = (event) => {
@@ -137,18 +135,14 @@ export default class extends AbstractView {
       };
       socket.onclose = (event) => {
         if (!WebSocketManager.isGameSocketConnecting) {
-          WebSocketManager.connectGameSocket(
-            `ws://localhost:8000/ws/play/${mode}/${roomName}/${this.nickname}/?token=${token}`,
-          );
+          WebSocketManager.connectGameSocket(`${window.DAPHNE_URL}/play/${mode}/${roomName}/${this.nickname}/?token=${token}`);
           socket = WebSocketManager.returnGameSocket();
         }
       };
       socket.onerror = (event) => {
         console.error('Game socket error:', event);
         if (!WebSocketManager.isGameSocketConnecting) {
-          WebSocketManager.connectGameSocket(
-            `ws://localhost:8000/ws/play/${mode}/${roomName}/${this.nickname}/?token=${token}`,
-          );
+          WebSocketManager.connectGameSocket(`${window.DAPHNE_URL}/play/${mode}/${roomName}/${this.nickname}/?token=${token}`);
           socket = WebSocketManager.returnGameSocket();
         }
       };
@@ -187,6 +181,8 @@ export default class extends AbstractView {
     await setupWebSocket(roomName, mode);
   }
   async tournamentNickNameModal(realName, roomName, socket) {
+    socket.onmessage = null;
+
     const modalHtml = `
       <div class="tournament_container_flex">
         <div>
@@ -319,13 +315,13 @@ export default class extends AbstractView {
     const isValidPlayer = function (valid, players) {
       if (valid === true) {
         const container = document.querySelector('.tournament_container_flex');
-        while (container.childNodes.length > 0) {
+        while (container && container.childNodes.length > 0) {
           container.removeChild(container.firstChild);
         }
         const newDiv = document.createElement('div');
         newDiv.classList.add('tournament_list');
         newDiv.innerHTML = tableHTML;
-        container.replaceChildren(newDiv);
+        if (container) container.replaceChildren(newDiv);
         const tournamentSemiPlayers = Array.from(document.getElementsByClassName('tournament_semi'));
         tournamentSemiPlayers.forEach((parentDiv, index) => {
           const children = parentDiv.children;

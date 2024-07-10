@@ -1,10 +1,10 @@
 #! /bin/sh
 
-# js_file="/usr/share/nginx/html/srcs/utils/utils.js"
+js_file="/usr/share/nginx/html/static/js/index.js"
 
-# sed -i '1,2d' $js_file
+sed -i '4,5d' $js_file
 
-# sed -i "1i window.DJANGO_API_BASE_URL = \"$DJANGO_BACKEND_URL\";" $js_file
-# sed -i "2i window.DAPHNE_BASE_URL = \"$DAPHNE_URL\";" $js_file
+sed -i "4i window.DJANGO_API_URL = \"https:\/\/$BEYONGPONG_COM:3000\/api\";" $js_file
+sed -i "5i window.DAPHNE_URL = \"wss:\/\/$BEYONGPONG_COM:3000\/ws\";" $js_file
 
 exec nginx -g "daemon off;"

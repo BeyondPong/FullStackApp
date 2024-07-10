@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 grid = 15
 paddle_width = grid * 6
 ball_speed = 12
-paddle_speed = 6
+paddle_speed = 12
 
 
 class GameConsumer(AsyncWebsocketConsumer):
@@ -76,16 +76,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             f"{self.room_name}_participants", {"players": [], "spectators": []}
         )
 
-        # game_mode에 따라 참가자 추가
-        if self.mode == "TOURNAMENT":
-            player_count = len(current_participants["players"])
-            if player_count < 2:
-                if player_count == 0:
-                    self.running_user = True
-                current_participants["players"].append(self.nickname)
-            else:
-                current_participants["spectators"].append(self.nickname)
-        else:  # REMOTE
+        # remote: append in current_participants (tournament: append in check_nickname)
+        if self.mode == "REMOTE":
             current_participants["players"].append(self.nickname)
 
         # debugging
@@ -105,37 +97,39 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
         if self.mode == "REMOTE" and len(current_participants["players"]) == 2:
-            self.running_user = True
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "start_game",
-                    # delete: running_user로 관리
-                    "data": {"first_user": current_participants["players"][0]},
-                },
-            )
+            # 현재 방의 상태를 in_game = True로 변경
+            await self.set_room_in_game()
+            await self.send_start_game(self.nickname)
 
     async def disconnect(self, close_code):
         users = cache.get(f"{self.room_name}_participants", None)
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+        # check if room game started
+        rooms = cache.get("rooms", {})
+        rooms_details = rooms.get(self.room_name, {})
+        if rooms_details.get("in_game"):
+            await self.remove_participant_from_cache()
+            await self.check_end_game(users)
+        else:  # tournament not started
+            await self.remove_participant_before_start()
+
+        # if last-participants, remove room
         await sync_to_async(manage_participants)(self.room_name, decrease=True)
-        await sync_to_async(self.remove_participant_from_cache)()
-        await self.check_end_game(users)
 
         if self.mode == "TOURNAMENT":
-            await sync_to_async(self.remove_nickname_from_cache)()
-            current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
-            await self.send_nickname_validation(current_nicknames)
+            await self.remove_nickname_from_cache()
+            if not rooms_details.get("in_game"):
+                current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
+                await self.send_nickname_validation(current_nicknames)
 
-        if self.mode == "REMOTE":
-            participants = cache.get(f"{self.room_name}_participants", None)
-            if (
-                participants
-                and len(participants["players"]) == 0
-                and len(participants["spectators"]) == 0
-            ):
-                del GameConsumer.running[self.room_name]
+        participants = cache.get(f"{self.room_name}_participants", None)
+        if (
+            participants
+            and len(participants["players"]) == 0
+            and len(participants["spectators"]) == 0
+        ):
+            del GameConsumer.running[self.room_name]
 
     async def check_end_game(self, users):
         if (not users or len(users["players"]) == 0) or (len(users["players"]) == 1):
@@ -165,16 +159,26 @@ class GameConsumer(AsyncWebsocketConsumer):
             cache.set(f"{self.room_name}_winners", winners)
             cache.set(f"{self.room_name}_losers", losers)
 
-    def remove_nickname_from_cache(self):
+    async def remove_nickname_from_cache(self):
+        logger.debug(
+            f"==============remove_nickname_from_cache: {self.nickname}=============="
+        )
         current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
+        logger.debug(f"before remove current_NICK: {current_nicknames}")
         nickname = self.scope["user"].nickname
         current_nicknames = [n for n in current_nicknames if n[1] != nickname]
         cache.set(f"{self.room_name}_nicknames", current_nicknames)
+        logger.debug(f"after remove current_NICK: {current_nicknames}")
 
-    def remove_participant_from_cache(self):
+    async def remove_participant_from_cache(self):
+        logger.debug(
+            f"==============remove_participant_from_cache: {self.nickname}=============="
+        )
         current_participants = cache.get(f"{self.room_name}_participants", None)
         if not current_participants:
             return
+
+        logger.debug(f"before remove current_participants: {current_participants}")
 
         # players 또는 spectators에서 self.nickname 삭제
         current_participants["players"] = [
@@ -183,6 +187,35 @@ class GameConsumer(AsyncWebsocketConsumer):
         current_participants["spectators"] = [
             p for p in current_participants["spectators"] if p != self.nickname
         ]
+
+        cache.set(f"{self.room_name}_participants", current_participants)
+
+        logger.debug(
+            f"Updated participants in {self.room_name}: {current_participants}"
+        )
+
+    async def remove_participant_before_start(self):
+        logger.debug(
+            f"==============remove_participant_from_cache: {self.nickname}=============="
+        )
+        current_participants = cache.get(f"{self.room_name}_participants", None)
+        if not current_participants:
+            return
+
+        logger.debug(f"before remove current_participants: {current_participants}")
+
+        # 플레이어 목록에서 self.nickname을 삭제 후 spectators에 있다면 옮기기
+        if self.nickname in current_participants["players"]:
+            current_participants["players"].remove(self.nickname)
+            # 플레이어가 나간 후 관전자 중 첫 번째를 플레이어로 승격시키기
+            if current_participants["spectators"]:
+                first_spectator = current_participants["spectators"].pop(0)
+                current_participants["players"].append(first_spectator)
+                logger.debug(f"{first_spectator} moved from spectators to players.")
+
+        # 관전자 목록에서 self.nickname 삭제
+        elif self.nickname in current_participants["spectators"]:
+            current_participants["spectators"].remove(self.nickname)
 
         cache.set(f"{self.room_name}_participants", current_participants)
 
@@ -201,8 +234,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         if action == "check_nickname":
             if self.mode == "TOURNAMENT":
                 tournament_nickname = data["nickname"]
-                nickname = self.nickname
-                await self.check_nickname(tournament_nickname, nickname)
+                await self.check_nickname(tournament_nickname, self.nickname)
 
         elif action == "set_board":
             # 창 크기 정보 캐시에서 가져오거나 초기화
@@ -216,11 +248,14 @@ class GameConsumer(AsyncWebsocketConsumer):
             windows["height"].append(game_height)
             cache.set(f"{self.room_name}_windows", windows)
 
-        elif action == "start_game":
+        elif action == "start_game" or action == "resend":
             windows = cache.get(f"{self.room_name}_windows")
             game_width = min(windows["width"])
             game_height = min(windows["height"])
-            await self.game_settings(game_width, game_height)
+            self_send = False
+            if action == "resend":
+                self_send = True
+            await self.game_settings(game_width, game_height, self_send)
             if self.running_user:
                 asyncio.create_task(self.start_ball_movement())
 
@@ -237,67 +272,58 @@ class GameConsumer(AsyncWebsocketConsumer):
     """
 
     async def check_nickname(self, tournament_nickname, nickname):
-        current_participants = cache.get(f"{self.room_name}_participants")
-        logger.debug(f"Participants: {current_participants}")
+        current_participants = cache.get(
+            f"{self.room_name}_participants", {"players": [], "spectators": []}
+        )
         current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
 
+        logger.debug("==============CHECK NICKNAME==============")
+        logger.debug(f"accepted tournament-nickname: {tournament_nickname}")
+        logger.debug(f"before append -> current_nicknames: {current_nicknames}")
+        logger.debug(f"before change -> current_participants: {current_participants}")
+
         if any(nick == tournament_nickname for nick, _ in current_nicknames):
+            logger.debug(f"{tournament_nickname} is in nicknames!! request again!!")
             await self.send(text_data=json.dumps({"valid": False}))
             return
 
-        if (
-            nickname in current_participants["players"]
-            or nickname in current_participants["spectators"]
-        ):
-            current_nicknames.append((tournament_nickname, nickname))
-            cache.set(f"{self.room_name}_nicknames", current_nicknames)
-            logger.debug(f"current_nicknames: {current_nicknames}")
+        # in tournament, self.nickname = tournament_nickname
+        self.nickname = tournament_nickname
+
+        # append in current_participants
+        player_count = len(current_participants["players"])
+        if player_count < 2:
+            current_participants["players"].append(self.nickname)
+        else:
+            current_participants["spectators"].append(self.nickname)
+        cache.set(f"{self.room_name}_participants", current_participants)
+        logger.debug(f"update current_participants : {current_participants}")
+
+        # append in current_nicknames(nickname = intra-nickname)
+        current_nicknames.append((tournament_nickname, nickname))
+        cache.set(f"{self.room_name}_nicknames", current_nicknames)
+        logger.debug(f"current_nicknames: {current_nicknames}")
+
+        await self.send_nickname_validation(current_nicknames)
 
         if len(current_nicknames) == 4:
             logger.debug("4명이 다 들어왔습니다!")
             GameConsumer.is_final[self.room_name] = False
-            serialized_nicknames = await self.serialize_nicknames(current_nicknames)
-            current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
-            nickname_mapping = {real: tourney for tourney, real in current_nicknames}
+            # 현재 방의 상태를 in_game = True로 변경
+            await self.set_room_in_game()
+            await self.send_start_game(current_participants["players"][0])
 
-            if self.nickname == current_nicknames[0][1]:
-                self.running_user = True
-            logger.debug(f"serialized_nicknames: {serialized_nicknames}")
+        logger.debug("--------------after update--------------")
+        current_participants = cache.get(
+            f"{self.room_name}_participants", {"players": [], "spectators": []}
+        )
+        current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
+        logger.debug(f"accepted tournament-nickname: {tournament_nickname}")
+        logger.debug(f"after append -> current_nicknames: {current_nicknames}")
+        logger.debug(f"after change -> current_participants: {current_participants}")
+        logger.debug("==========================================")
 
-            current_participants = cache.get(
-                f"{self.room_name}_participants", {"players": [], "spectators": []}
-            )
-
-            # Update players with tournament nicknames
-            updated_players = [
-                nickname_mapping.get(nickname, nickname)
-                for nickname in current_participants["players"]
-            ]
-            # Update spectators with tournament nicknames
-            updated_spectators = [
-                nickname_mapping.get(nickname, nickname)
-                for nickname in current_participants["spectators"]
-            ]
-
-            current_participants["players"] = updated_players
-            current_participants["spectators"] = updated_spectators
-
-            cache.set(f"{self.room_name}_participants", current_participants)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "start_game",
-                    "data": {
-                        "nicknames": serialized_nicknames,
-                    },
-                },
-            )
-        self.nickname = tournament_nickname  # 토너먼트면 self.nickname까지 tournament_nickname으로 변경
-
-        await self.send_nickname_validation(current_nicknames)
-
-    async def game_settings(self, game_width, game_height):
+    async def game_settings(self, game_width, game_height, self_send):
         self.game_width = game_width
         self.game_height = game_height
         self.paddle_width = paddle_width
@@ -307,11 +333,16 @@ class GameConsumer(AsyncWebsocketConsumer):
         current_participants = cache.get(f"{self.room_name}_participants")
         winners = cache.get(f"{self.room_name}_winners", [])
 
-        # player lefts room before start final_round
+        # player lefts room before start game
         if len(winners) == 2 and len(current_participants["players"]) < 2:
-            await self.handle_pre_game_player_exit(
+            # only in tournament-final-round
+            await self.handle_pre_final_game_player_exit(
                 current_participants["players"], winners
             )
+            return
+        elif len(current_participants["players"]) < 2:
+            # another round will be stopped game
+            await self.send_pre_game_player_exit(current_participants["players"])
             return
 
         # init and send game_data
@@ -320,6 +351,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         if self.running_user:
             GameConsumer.running[self.room_name] = True
             await self.send_game_data("game_start")
+        elif self_send:
+            await self.send_game_data("game_start", True)
 
     async def update_ball_position(self):
         ball = self.ball_position
@@ -337,7 +370,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         current_participants = cache.get(f"{self.room_name}_participants")
         if (
-            len(current_participants["players"]) == 2
+            current_participants
+            and len(current_participants["players"]) == 2
             and current_participants["players"][0] in self.paddles
             and current_participants["players"][1] in self.paddles
         ):
@@ -357,7 +391,8 @@ class GameConsumer(AsyncWebsocketConsumer):
                     current_participants["players"][1],
                     current_participants["players"][0],
                 )
-        await self.check_paddle_collision()
+            # current_participants에 없는 경우에 대해 paddle_position 보내지 못하도록 if문 안에 넣음
+            await self.check_paddle_collision()
 
     async def move_paddle(self, paddle_owner, direction):
         if direction == "left":
@@ -418,12 +453,25 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         current_participants = cache.get(f"{self.room_name}_participants")
         if winner == self.paddles[current_participants["players"][0]]["nickname"]:
-            self.ball_velocity = {"x": 0, "y": 5}
+            self.ball_velocity = {"x": 0, "y": 10}
         else:
-            self.ball_velocity = {"x": 0, "y": -5}
+            self.ball_velocity = {"x": 0, "y": -10}
 
         # sleep and restart_game(send restart game_data)
-        await asyncio.sleep(2)
+        for _ in range(4):
+            await asyncio.sleep(0.5)
+            updated_participants = cache.get(f"{self.room_name}_participants")
+            if len(updated_participants["players"]) == 1:
+                winner = updated_participants["players"][0]
+                loser = None
+                for player in current_participants["players"]:
+                    if player not in updated_participants["players"]:
+                        loser = player
+                        break
+                self.scores[winner] = 7
+                await self.end_game(winner, loser)
+                return
+
         await self.init_data(flag=True)
         await self.send_game_data("game_restart")
         GameConsumer.running[self.room_name] = True
@@ -485,7 +533,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         )
         self.ball_position = {"x": self.game_width / 2, "y": self.game_height / 2}
         if flag is False:
-            self.ball_velocity = {"x": 0, "y": 5}
+            self.ball_velocity = {"x": 0, "y": 10}
         if winner_setting is True:
             current_participants["players"] = cache.get(f"{self.room_name}_winners")
         if len(current_participants["players"]) < 2:
@@ -496,7 +544,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             "y": self.game_height - grid * 3,
             "width": self.paddle_width,
             "height": grid,
-            "color": "red",
         }
         self.paddles[current_participants["players"][1]] = {
             "nickname": current_participants["players"][1],
@@ -504,7 +551,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             "y": grid * 2,
             "width": self.paddle_width,
             "height": grid,
-            "color": "black",
         }
 
     async def prepare_next_tournament(self, winner, loser):
@@ -551,13 +597,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                "type": "broadcast_next_tournament",
+                "type": "broadcast_for_start",
                 "event_type": round_type,
+                "data": {},
                 "running_user_nickname": new_running_user,
             },
         )
 
-    async def handle_pre_game_player_exit(self, players, winners):
+    async def handle_pre_final_game_player_exit(self, players, winners):
         self.running_user = False
         await self.init_data(winner_setting=True)
         self.scores = {nickname: 0 for nickname in winners}
@@ -565,7 +612,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send_game_data("game_start")
 
         # sleep 1sec and end_game
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
         winner = None
         loser = None
         # current participant will be winner
@@ -578,16 +625,43 @@ class GameConsumer(AsyncWebsocketConsumer):
                 loser = participant
         await self.end_game(winner, loser)
 
+    async def set_room_in_game(self):
+        rooms = cache.get("rooms", {})
+        logger.debug(f"Rooms: {rooms}")
+        rooms_details = rooms.get(self.room_name, {})
+        rooms_details["in_game"] = True
+        rooms[self.room_name] = rooms_details
+        cache.set("rooms", rooms)
+
     """
     ** send to group method
     """
+
+    async def send_start_game(self, new_running_user):
+        serialized_nicknames = []
+        if self.mode == "TOURNAMENT":
+            current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
+            serialized_nicknames = await self.serialize_nicknames(current_nicknames)
+            logger.debug(f"serialized_nicknames: {serialized_nicknames}")
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "broadcast_for_start",
+                "event_type": "start_game",
+                "data": {
+                    "nicknames": serialized_nicknames,
+                },
+                "running_user_nickname": new_running_user,
+            },
+        )
 
     async def send_nickname_validation(self, current_nicknames):
         serialized_nicknames = await self.serialize_nicknames(current_nicknames)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                "type": "broadcast_event",
+                "type": "broadcast_nickname_validation",
                 "event_type": "nickname_valid",
                 "data": {
                     "valid": True,
@@ -596,18 +670,32 @@ class GameConsumer(AsyncWebsocketConsumer):
             },
         )
 
-    async def send_game_data(self, event_type):
+    async def send_pre_game_player_exit(self, current_players):
+        game_data = {"players": current_players}
+        if self.mode == "TOURNAMENT":
+            current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
+            if self.nickname != current_nicknames[0][0]:
+                return
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "broadcast_event",
+                "event_type": "game_start",
+                "data": game_data,
+            },
+        )
+
+    async def send_game_data(self, event_type, self_send=False):
         logger.debug(f"**is_final: {GameConsumer.is_final[self.room_name]}")
+        # player left room before only for tournament-fianl-game (another games will be checked in FE)
         current_participants = cache.get(f"{self.room_name}_participants")
-        # 결승전 직전에 플레이어 중 누가 나간 경우 바뀌어야 함
         players = current_participants["players"]
         if (
             self.mode == "TOURNAMENT"
-            and GameConsumer.is_final[self.room_name] == True
+            and GameConsumer.is_final[self.room_name]
             and len(players) < 2
         ):
             players = cache.get(f"{self.room_name}_winners", [])
-        logger.debug(f"players(tournament): {players}, paddle-position: {self.paddles}")
         game_data = {
             "is_final": GameConsumer.is_final[self.room_name],
             "game_width": self.game_width,
@@ -618,14 +706,19 @@ class GameConsumer(AsyncWebsocketConsumer):
             "players": players,
             "scores": self.scores,
         }
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "broadcast_game_data",
-                "event_type": event_type,
-                "data": game_data,
-            },
-        )
+        if self_send:
+            await self.send(
+                text_data=json.dumps({"type": event_type, "data": game_data})
+            )
+        else:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "broadcast_game_data",
+                    "event_type": event_type,
+                    "data": game_data,
+                },
+            )
 
     async def send_ball_position(self):
         await self.channel_layer.group_send(
@@ -683,24 +776,29 @@ class GameConsumer(AsyncWebsocketConsumer):
     """
 
     async def broadcast_event(self, event):
-        event_type = event["event_type"]
         await self.send(
-            text_data=json.dumps({"type": event_type, "data": event["data"]})
+            text_data=json.dumps({"type": event["event_type"], "data": event["data"]})
+        )
+
+    async def broadcast_nickname_validation(self, event):
+        current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
+        if not any(nick == self.nickname for nick, _ in current_nicknames):
+            return
+        await self.send(
+            text_data=json.dumps({"type": event["event_type"], "data": event["data"]})
         )
 
     async def broadcast_paddle_position(self, event):
         paddles = event["data"]
-        event_type = event["event_type"]
         # update
         for paddle in paddles:
             self.paddles[paddle["nickname"]] = paddle
         # send
         await self.send(
-            text_data=json.dumps({"type": event_type, "data": event["data"]})
+            text_data=json.dumps({"type": event["event_type"], "data": event["data"]})
         )
 
     async def broadcast_game_data(self, event):
-        event_type = event["event_type"]
         data = event["data"]
         # update
         self.ball_position = data["ball_position"]
@@ -709,35 +807,25 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.scores = data["scores"]
         # send
         await self.send(
-            text_data=json.dumps({"type": event_type, "data": event["data"]})
+            text_data=json.dumps({"type": event["event_type"], "data": event["data"]})
         )
 
-    # async def broadcast_score(self, event):
-    #     event_type = event["event_type"]
-    #     data = event["data"]
-    #     # update
-    #     self.scores = data["scores"]
-    #     self.ball_position = data["ball_position"]
-    #     # send
-    #     await self.send(
-    #         text_data=json.dumps({"type": event_type, "data": event["data"]})
-    #     )
-
-    async def broadcast_next_tournament(self, event):
-        event_type = event["event_type"]
+    async def broadcast_for_start(self, event):
         running_user_nickname = event["running_user_nickname"]
         if self.nickname == running_user_nickname:
             self.running_user = True
         else:
             self.running_user = False
-        await self.send(text_data=json.dumps({"type": event_type}))
+        await self.send(
+            text_data=json.dumps({"type": event["event_type"], "data": event["data"]})
+        )
 
     """
     ** coroutine method
     """
 
     async def start_ball_movement(self):
-        while GameConsumer.running[self.room_name]:
+        while GameConsumer.running.get(self.room_name, False):
             await self.update_ball_position()
             await self.send_ball_position()
             await asyncio.sleep(0.01667)  # 60 FPS

@@ -6,7 +6,7 @@ export const postGameResult = async (gameMode, userInfo) => {
     const user2 = encodeURIComponent(userInfo.player2.name);
     const user1_score = encodeURIComponent(userInfo.player1.score);
     const user2_score = encodeURIComponent(userInfo.player2.score);
-    const response = await fetch('http://localhost:8000/play/result/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/play/result/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export const postGameResult = async (gameMode, userInfo) => {
 
 export const postLoginCode2FA = async (code) => {
   try {
-    const response = await fetch('http://localhost:8000/login/two_fa/verify/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/login/two_fa/verify/`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${getToken('token')}`,
@@ -52,7 +52,7 @@ export const postLoginCode2FA = async (code) => {
 
 export const postLogin2FA = async () => {
   try {
-    const response = await fetch('http://localhost:8000/login/two_fa/request/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/login/two_fa/request/`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${getToken('token')}`,
@@ -72,7 +72,7 @@ export const postLogin2FA = async () => {
 
 export const postTournamentNickName = async (nickName, realName, roomName) => {
   try {
-    const response = await fetch('http://localhost:8000/play/nickname/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/play/nickname/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export const postTournamentNickName = async (nickName, realName, roomName) => {
 export const postAddFriend = async (userId) => {
   try {
     const encodedUserId = encodeURIComponent(userId);
-    const response = await fetch(`http://localhost:8000/profile/search/${encodedUserId}/`, {
+    const response = await fetch(`${window.DJANGO_API_URL}/profile/search/${encodedUserId}/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export const postAddFriend = async (userId) => {
 
 export const postLoginCode = async (code) => {
   try {
-    const response = await fetch('http://localhost:8000/login/oauth/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/login/oauth/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

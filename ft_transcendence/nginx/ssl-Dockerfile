@@ -24,9 +24,6 @@ RUN mkdir -p /run/nginx
 # Expose port 3000
 EXPOSE 3000
 
-# Command to start Nginx
-#CMD ["nginx", "-g", "daemon off;"]
-
 COPY ./nginx/setup.sh /setup.sh
 RUN chmod +x /setup.sh
 CMD ["/setup.sh"]

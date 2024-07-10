@@ -9,12 +9,13 @@ import pathToRegex from '../utility/pathToRegex.js';
 import getParams from '../utility/getParams.js';
 import navigateTo from '../utility/navigateTo.js';
 import updateBackground from '../utility/updateBackground.js';
+import WebSocketManager from '../state/WebSocketManager.js';
+import { getLoginURI } from '../api/getAPI.js';
 import { postLoginCode } from '../api/postAPI.js';
 import { removeBlurBackground } from '../utility/blurBackGround.js';
 import { checkLogin } from '../utility/checkLogin.js';
 import { check2FAStatus } from '../utility/check2FA.js';
-import WebSocketManager from '../state/WebSocketManager.js';
-
+import { checkMultipleLogin } from '../utility/checkMultipleLogin.js';
 export class Router {
   constructor() {
     this.routes = [
@@ -33,6 +34,7 @@ export class Router {
   async route() {
     WebSocketManager.closeGameSocket();
     let match = this.findMatch();
+    console.log(match);
     if (!match || location.pathname === '/notfound') {
       match = this.handleNotFound();
     }
@@ -46,24 +48,6 @@ export class Router {
         result: location.pathname.match(pathToRegex(route.path)),
       }))
       .find((potentialMatch) => potentialMatch.result !== null);
-  }
-
-  handleNotFound() {
-    navigateTo('/notfound');
-    updateBackground('error');
-    return {
-      route: this.routes.find((r) => r.path === '/notfound'),
-      result: [location.pathname],
-    };
-  }
-
-  handleNotLogin() {
-    navigateTo('/notlogin');
-    updateBackground('error');
-    return {
-      route: this.routes.find((r) => r.path === '/notlogin'),
-      result: [location.pathname],
-    };
   }
 
   async handleRouteChange(match) {
@@ -96,6 +80,24 @@ export class Router {
     }
   }
 
+  handleNotFound() {
+    navigateTo('/notfound');
+    updateBackground('error');
+    return {
+      route: this.routes.find((r) => r.path === '/notfound'),
+      result: [location.pathname],
+    };
+  }
+
+  handleNotLogin() {
+    navigateTo('/notlogin');
+    updateBackground('error');
+    return {
+      route: this.routes.find((r) => r.path === '/notlogin'),
+      result: [location.pathname],
+    };
+  }
+
   async handle2FA(match) {
     if (check2FAStatus() === true) {
       window.location.href = '/';
@@ -103,6 +105,12 @@ export class Router {
     }
     if (checkLogin() === false) {
       window.location.href = '/notlogin';
+      return;
+    }
+    if (checkMultipleLogin() === true) {
+      localStorage.clear();
+      alert('You are already logged in another device');
+      window.location.href = '/';
       return;
     }
     updateBackground('normal');
@@ -131,12 +139,18 @@ export class Router {
 
   async handleMainRoute(match) {
     if (checkLogin() === true) {
+      if (checkMultipleLogin() === true) {
+        localStorage.clear();
+        alert('You are already logged in another device');
+        window.location.href = '/';
+        return;
+      }
       if (check2FAStatus() === false) {
         window.location.href = '/2fa';
         return;
       }
       const token = localStorage.getItem('2FA');
-      WebSocketManager.connectFriendSocket(`ws://localhost:8000/ws/member/login_room/?token=${token}`);
+      WebSocketManager.connectFriendSocket(`${window.DAPHNE_URL}/member/login_room/?token=${token}`);
     } else {
       WebSocketManager.closeFriendSocket();
     }
@@ -151,8 +165,8 @@ export class Router {
     if (localStorage.getItem('token') !== null) {
       window.location.href = '/';
     } else if (!localStorage.getItem('token')) {
-      window.location.href =
-        'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-4540298f9d0123b1db55521edf596a7625a4deea7a1b957bf5dbe1d7dc2ec9ab&redirect_uri=https://localhost:3000/login_code/&response_type=code';
+      const loginURL = await getLoginURI();
+      window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-32b3b0c307e28cc6a1e85031c7f8d0e7acaf22e3437ad9cbb35043b2d1c82844&redirect_uri=https://10.18.239.155:3000/login_code/&response_type=code`;
     }
   }
 

@@ -258,6 +258,25 @@
 
 /* history */
 
+.text_size_buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.text_size {
+  color: var(--profile-color);
+}
+
+.text_size_button {
+  color: var(--profile-color);
+}
+
+.text_size_button:hover {
+  color: var(--black-color);
+}
+
 .table_container {
   table-layout: fixed;
   width: 100%;

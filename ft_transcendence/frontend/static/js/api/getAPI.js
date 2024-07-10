@@ -1,8 +1,36 @@
 const getToken = (key) => encodeURIComponent(localStorage.getItem(key));
 
+export const getLoginURI = async () => {
+  try {
+    const response = await fetch(`${window.DJANGO_API_URL}/login/oauth/`, {
+      method: 'GET',
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log('Failed to get login URI: ', error);
+  }
+};
+
+export const getMultipleLogin = async () => {
+  try {
+    const response = await fetch(`${window.DJANGO_API_URL}/login/multiple/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken('token')}`,
+      },
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log('Failed to get multiple login: ', error);
+  }
+};
+
 export const getRegistration = async () => {
   try {
-    const response = await fetch('http://localhost:8000/login/registration/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/login/registration/`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${getToken('token')}`,
@@ -21,7 +49,7 @@ export const getRegistration = async () => {
 export const getRoomName = async (mode) => {
   try {
     const encodedMode = encodeURIComponent(mode);
-    const response = await fetch(`http://localhost:8000/play/room/?mode=${encodedMode}`, {
+    const response = await fetch(`${window.DJANGO_API_URL}/play/room/?mode=${encodedMode}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${getToken('2FA')}`,
@@ -39,7 +67,7 @@ export const getRoomName = async (mode) => {
 
 export const getProfileData = async () => {
   try {
-    const response = await fetch('http://localhost:8000/profile/information/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/profile/information/`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${getToken('2FA')}`,
@@ -57,7 +85,7 @@ export const getProfileData = async () => {
 
 export const getHistoryData = async () => {
   try {
-    const response = await fetch('http://localhost:8000/profile/history/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/profile/history/`, {
       headers: {
         Authorization: `Bearer ${getToken('2FA')}`,
       },
@@ -74,7 +102,7 @@ export const getHistoryData = async () => {
 
 export const getFriendsData = async () => {
   try {
-    const response = await fetch('http://localhost:8000/profile/friends/', {
+    const response = await fetch(`${window.DJANGO_API_URL}/profile/friends/`, {
       headers: {
         Authorization: `Bearer ${getToken('2FA')}`,
       },
@@ -92,7 +120,7 @@ export const getFriendsData = async () => {
 export const getSearchResultData = async (userId) => {
   try {
     const encodedUserId = encodeURIComponent(userId);
-    const response = await fetch(`http://localhost:8000/profile/search/?nickname=${encodedUserId}`, {
+    const response = await fetch(`${window.DJANGO_API_URL}/profile/search/?nickname=${encodedUserId}`, {
       headers: {
         Authorization: `Bearer ${getToken('2FA')}`,
       },
