@@ -1,8 +1,8 @@
 import { Router } from './router/router.js';
 import navigateTo from './utility/navigateTo.js';
 
-window.DJANGO_API_URL = "https://10.18.239.155:3000/api";
-window.DAPHNE_URL = "wss://10.18.239.155:3000/ws";
+window.DJANGO_API_URL = "https://beyondpong.com:3000/api";
+window.DAPHNE_URL = "wss://beyondpong.com:3000/ws";
 
 const router = new Router();
 window.addEventListener('popstate', () => router.route());

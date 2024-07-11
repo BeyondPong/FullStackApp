@@ -30,4 +30,5 @@ RUN pip install -r requirements.txt
 
 WORKDIR /app/backend
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "backend.asgi:application"]
+# CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "backend.asgi:application"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "-v", "0", "backend.asgi:application"]

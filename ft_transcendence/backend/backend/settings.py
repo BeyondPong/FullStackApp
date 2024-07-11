@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 import os
 from decouple import config
+import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +38,7 @@ AUTH_USER_MODEL = "user.Member"
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False   # backend log false => for eval!!!
 
 # for postman test(redirect by slash'/')
 APPEND_SLASH = False
@@ -223,19 +224,51 @@ CHANNEL_LAYERS = {
 }
 
 # debug
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "WARNING",  # 필요한 경우 INFO, WARNING 등으로 변경 가능
+#     },
+# }
+
+class SuppressWebSocketFrames(logging.Filter):
+    def filter(self, record):
+        return 'WebSocket incoming frame' not in record.getMessage() and 'Sent WebSocket packet to client' not in record.getMessage()
+
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'suppress_websocket_frames': {
+            '()': SuppressWebSocketFrames,
         },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": "DEBUG",  # 필요한 경우 INFO, WARNING 등으로 변경 가능
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['suppress_websocket_frames'],
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'daphne': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
     },
 }
+
 
 # csp setting
 CSP_DEFAULT_SRC = ("'self'",)

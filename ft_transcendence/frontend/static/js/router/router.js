@@ -166,7 +166,7 @@ export class Router {
       window.location.href = '/';
     } else if (!localStorage.getItem('token')) {
       const loginURL = await getLoginURI();
-      window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-32b3b0c307e28cc6a1e85031c7f8d0e7acaf22e3437ad9cbb35043b2d1c82844&redirect_uri=https://10.18.239.155:3000/login_code/&response_type=code`;
+      window.location.href = loginURL.redirect_url;
     }
   }
 
