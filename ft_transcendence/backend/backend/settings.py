@@ -21,9 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Get env-variables
 OAUTH_CLIENT_ID = config("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = config("OAUTH_CLIENT_SECRET")
-OAUTH_REDIRECT_URI = config(
-    "OAUTH_REDIRECT_URI", default="http://localhost:5173/login_code/"
-)
+OAUTH_REDIRECT_URI = config("OAUTH_REDIRECT_URI")
 OAUTH_TOKEN_URL = config("OAUTH_TOKEN_URL")
 OAUTH_AUTHORIZATION_URL = config("OAUTH_AUTHORIZATION_URL")
 OAUTH_API_URL = config("OAUTH_API_URL")
@@ -104,7 +102,7 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     "https://localhost:3000",
