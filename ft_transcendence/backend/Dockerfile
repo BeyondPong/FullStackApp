@@ -14,18 +14,12 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /backend/
-RUN pip install -r requirements.txt
-
 # 요구사항 파일 복사 및 파이썬 패키지 설치
 COPY requirements.txt /backend/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # 앱 소스 코드 복사
 COPY . /backend/
-
-# 디버깅을 위해 파이썬 출력에 대해 버퍼링하지 않고 즉시 출력하도록 환경변수 설정
-ENV PYTHONUNBUFFERED=1
 
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 #CMD sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
