@@ -222,7 +222,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-debug
+# debug
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
