@@ -222,7 +222,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-debug
+# debug
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -236,7 +236,6 @@ LOGGING = {
         "level": "WARNING",  # 필요한 경우 INFO, WARNING 등으로 변경 가능
     },
 }
-
 
 # csp setting
 CSP_DEFAULT_SRC = ("'self'",)
