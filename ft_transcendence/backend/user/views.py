@@ -41,11 +41,11 @@ class GetGameHistory(APIView):
             if game.user1 and game.user1.id == user_id:
                 opponent = game.user2.nickname if game.user2 else "Unknown"
                 my_score = game.user1_score
-                opponent_score = game.user2_score if game.user2 else 0
+                opponent_score = game.user2_score
             elif game.user2 and game.user2.id == user_id:
                 opponent = game.user1.nickname if game.user1 else "Unknown"
                 my_score = game.user2_score
-                opponent_score = game.user1_score if game.user1 else 0
+                opponent_score = game.user1_score
             else:
                 continue
 
