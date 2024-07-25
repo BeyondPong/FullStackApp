@@ -570,6 +570,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         # round_type for next_round or final_round
         round_type = "next_round"
 
+        # init sending data
+        final_players = []
+
         if len(current_participants["spectators"]) == 2:  # 4강 2경기
             new_players = current_participants["spectators"]
             current_participants["players"] = new_players
@@ -580,6 +583,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         elif len(winners) == 2:  # 파이널
             GameConsumer.is_final[self.room_name] = True
             round_type = "final_round"
+            final_players = winners
 
             # setting for left-spectator in winner(first round)
             current_nicknames = cache.get(f"{self.room_name}_nicknames", [])
@@ -599,7 +603,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             {
                 "type": "broadcast_for_start",
                 "event_type": round_type,
-                "data": {},
+                "data": {
+                    "final_players": final_players
+                },
                 "running_user_nickname": new_running_user,
             },
         )
