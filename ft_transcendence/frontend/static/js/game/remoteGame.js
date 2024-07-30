@@ -3,7 +3,7 @@ import { addBlurBackground } from '../utility/blurBackGround.js';
 
 export const remoteGame = {
   async init(socket, nickname, gameMode) {
-    console.log(socket, nickname, gameMode);
+    // console.log(socket, nickname, gameMode);
     addBlurBackground();
     let root = document.getElementById('app');
     const $canvas = document.createElement('canvas');
@@ -453,6 +453,10 @@ export const remoteGame = {
       if (role === true) {
         document.addEventListener('keydown', keydownHandler);
         document.addEventListener('keyup', keyupHandler);
+        window.addEventListener("beforeunload",()=>{
+          document.removeEventListener('keydown', keydownHandler);
+          document.removeEventListener('keyup', keyupHandler);
+        }, {once:true})  
       }
     }
 
@@ -480,8 +484,12 @@ export const remoteGame = {
           paddle: nickname,
           direction: 'right',
         };
-        socket.send(JSON.stringify(responseMessage));
-      }
+    
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(responseMessage));
+        } else {
+          console.error('WebSocket is not open. ReadyState:', socket.readyState);
+        }      }
     }
 
     function keyupHandler(e) {

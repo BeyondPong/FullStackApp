@@ -16,6 +16,7 @@ import { removeBlurBackground } from '../utility/blurBackGround.js';
 import { checkLogin } from '../utility/checkLogin.js';
 import { check2FAStatus } from '../utility/check2FA.js';
 import { checkMultipleLogin } from '../utility/checkMultipleLogin.js';
+
 export class Router {
   constructor() {
     this.routes = [
@@ -32,9 +33,14 @@ export class Router {
   }
 
   async route() {
+    function removeAllEventListenersFromBody() {
+      let oldBody = document.body;
+      let newBody = oldBody.cloneNode(true);
+      document.documentElement.replaceChild(newBody, oldBody);
+  }
+    removeAllEventListenersFromBody();
     WebSocketManager.closeGameSocket();
     let match = this.findMatch();
-    console.log(match);
     if (!match || location.pathname === '/notfound') {
       match = this.handleNotFound();
     }
@@ -107,7 +113,7 @@ export class Router {
       window.location.href = '/notlogin';
       return;
     }
-    if (checkMultipleLogin() === true) {
+    if (await checkMultipleLogin() === true) {
       localStorage.clear();
       alert('You are already logged in another device');
       window.location.href = '/';
@@ -139,12 +145,12 @@ export class Router {
 
   async handleMainRoute(match) {
     if (checkLogin() === true) {
-      if (checkMultipleLogin() === true) {
-        localStorage.clear();
-        alert('You are already logged in another device');
-        window.location.href = '/';
-        return;
-      }
+      // if (await checkMultipleLogin() === true) {
+      //   localStorage.clear();
+      //   alert('You are already logged in another device');
+      //   window.location.href = '/';
+      //   return;
+      // }
       if (check2FAStatus() === false) {
         window.location.href = '/2fa';
         return;

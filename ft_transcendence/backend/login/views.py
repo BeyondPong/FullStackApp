@@ -289,12 +289,32 @@ class TwoFactorVerifyCodeView(APIView):
             return None
 
 
+# class MultipleLoginView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         logger.debug("========== MULTIPLE LOGIN REQUEST ==========")
+#         user = request.user
+#         redis_conn = get_redis_connection("default")
+#         is_multiple = bool(redis_conn.sismember(f"login_room_users", user.nickname))
+#         return Response({"is_multiple": is_multiple}, status=status.HTTP_200_OK)
 class MultipleLoginView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         logger.debug("========== MULTIPLE LOGIN REQUEST ==========")
         user = request.user
+
+        # Redis 연결
         redis_conn = get_redis_connection("default")
-        is_multiple = bool(redis_conn.sismember(f"login_room_users", user.nickname))
+
+        # 해당 유저가 'login_room_users' 집합의 멤버인지 확인
+        is_multiple = bool(redis_conn.sismember("login_room_users", user.nickname))
+        logger.debug(f"is_multiple : {is_multiple}")
+
+        # 'login_room_users' 집합의 모든 멤버 조회
+        all_users = redis_conn.smembers("login_room_users")
+        # 집합에서 반환된 바이트 스트링을 디코드하여 로깅
+        all_users_decoded = {member.decode('utf-8') for member in all_users}
+        logger.debug(f"All users in login_room_users: {all_users_decoded}")
         return Response({"is_multiple": is_multiple}, status=status.HTTP_200_OK)

@@ -233,7 +233,7 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "WARNING",  # 필요한 경우 INFO, WARNING 등으로 변경 가능
+        "level": "WARNING",  # 필요한 경우 INFO, DEBUG, WARNING 등으로 변경 가능
     },
 }
 
