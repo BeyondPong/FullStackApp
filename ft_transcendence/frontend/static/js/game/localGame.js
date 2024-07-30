@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three/build/three.module.js';
+import beforeUnload from '../utility/beforeUnload.js';
 import { addBlurBackground } from '../utility/blurBackGround.js';
 
 export const localGame = {
@@ -439,11 +440,14 @@ export const localGame = {
     function updateScoreBoardPosition() {
       const canvasRect = renderer.domElement.getBoundingClientRect();
       const scoreBoard = document.getElementById('scoreBoard');
+      if (scoreBoard === undefined) {
+        stopRender();
+      }
       scoreBoard.style.top = `${canvasRect.top}px`;
       scoreBoard.style.left = `${canvasRect.right + 20}px`;
       scoreBoard.style.height = `${canvasRect.height}px`;
     }
-
+    window.addEventListener('beforeunload', beforeUnload);
     setScore();
     setRender().then(() => {
       window.addEventListener('resize', onWindowResize, false);
