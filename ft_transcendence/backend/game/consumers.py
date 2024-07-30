@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 grid = 15
 paddle_width = grid * 6
 ball_speed = 12
-paddle_speed = 12
+paddle_speed = 24
 
 
 class GameConsumer(AsyncWebsocketConsumer):

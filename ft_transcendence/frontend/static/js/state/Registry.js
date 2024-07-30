@@ -81,6 +81,8 @@ export const words = {
     twofactor_error_code: 'The code you entered is incorrect. Please try again.',
     remain_time: 'Time Remaining',
     remain_time_over: 'The login code expired. Please press resend button.',
+    isUnregister: 'Are you sure you want to unregister?',
+    cancel: 'Cancel',
   },
   ko: {
     play: '플레이',
@@ -143,6 +145,8 @@ export const words = {
     twofactor_error_code: '잘못된 코드입니다. 다시 시도해 주세요.',
     remain_time: '남은 시간',
     remain_time_over: '인증코드가 만료되었습니다. 재전송 버튼을 눌러주세요.',
+    isUnregister: '정말로 탈퇴하시겠습니까?',
+    cancel: '취소',
   },
   jp: {
     play: 'プレー',
@@ -206,6 +210,8 @@ export const words = {
     twofactor_error_code: '入力されたコードが正しくありません。もう一度お試しください。',
     remain_time: '残り時間',
     remain_time_over: 'ログインコードの有効期限が切れました。再送信ボタンを押してください。',
+    isUnregister: '本当に退会しますか？',
+    cancel: 'キャンセル',
   },
 };
 

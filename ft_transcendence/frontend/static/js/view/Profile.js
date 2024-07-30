@@ -17,16 +17,18 @@ export default class extends AbstractView {
                 <a href="/" id="main_link" class="nav__link" data-link>Ping? Pong!</a>
               </header>
               <nav>
-              <a href="/" id="unregister" class="nav__link" data-link>${words[registry.lang].unregister}</a>
+              <a tabIndex="0" id="unregister" class="nav__link">${words[registry.lang].unregister}</a>
               <a href="/play" id="play_link" class="nav__link" data-link>${words[registry.lang].play}</a>
-              <a href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${words[registry.lang].profile
-      }</a>
+              <a href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${
+                words[registry.lang].profile
+              }</a>
               </nav>
               <section class="modal_container">
                 <div class="modal_content profile_modal">
                   <ul class="profile_nav">
-                    <li class="profile_nav_item"><a href="#" class="information">${words[registry.lang].information
-      }</a></li>
+                    <li class="profile_nav_item"><a href="#" class="information">${
+                      words[registry.lang].information
+                    }</a></li>
                     <li class="profile_nav_item"><a href="#" class="history">${words[registry.lang].history}</a></li>
                     <li class="profile_nav_item"><a href="#" class="friends">${words[registry.lang].friends}</a></li>
                     <li class="profile_nav_item"><a href="#" class="search">${words[registry.lang].search}</a></li>
@@ -40,14 +42,49 @@ export default class extends AbstractView {
 
   async addEvent() {
     const unregisterLink = document.getElementById('unregister');
-    unregisterLink.addEventListener('click', async (e) => {
+    const unregisterModal = document.createElement('div');
+    unregisterModal.classList.add('unregister_modal');
+    unregisterModal.style.display = 'none';
+    unregisterModal.innerText = words[registry.lang].isUnregister;
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('button_container');
+    const unregisterButton = document.createElement('button');
+    unregisterButton.classList.add('unregister_button');
+    unregisterButton.textContent = words[registry.lang].unregister;
+    buttonContainer.appendChild(unregisterButton);
+    const cancelButton = document.createElement('button');
+    cancelButton.classList.add('unregister_button');
+    cancelButton.classList.add('cancel_button');
+    cancelButton.textContent = words[registry.lang].cancel;
+    buttonContainer.appendChild(cancelButton);
+    unregisterModal.appendChild(buttonContainer);
+    document.querySelector('.modal_container').appendChild(unregisterModal);
+    unregisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      unregisterModal.style.display = 'flex';
+    });
+    unregisterLink.addEventListener('keydown', (e) => {
+      e.preventDefault();
+      if (e.key === 'Enter') {
+        unregisterModal.style.display = 'flex';
+      }
+    });
+    cancelButton.addEventListener('click', () => {
+      unregisterModal.style.display = 'none';
+    });
+    cancelButton.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        unregisterModal.style.display = 'none';
+      }
+    });
+    unregisterButton.addEventListener('click', async (e) => {
       e.preventDefault();
       await deleteAccount();
       localStorage.removeItem('token');
       localStorage.removeItem('2FA');
       window.location.href = '/';
     });
-    unregisterLink.addEventListener('keydown', async (e) => {
+    unregisterButton.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         await deleteAccount();
@@ -94,7 +131,7 @@ export default class extends AbstractView {
         if ((e.key === 'Enter' && plusText) || e.key === 'click') {
           plusText.click();
         }
-      })
+      });
       reduceText.addEventListener('click', () => {
         containerFontSize = Math.max(0.5, containerFontSize - 0.1);
         tableContainer.style.fontSize = containerFontSize + 'rem';

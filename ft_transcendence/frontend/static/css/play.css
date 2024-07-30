@@ -484,6 +484,26 @@
   animation: slideBottom 1s forwards, fadeOut 1s 2s forwards;
 }
 
+#player1Name,
+#player2Name {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  opacity: 0;
+  animation: fadeInOut 1s 3s forwards, fadeOut 1s 5s forwards;
+}
+
+#player1Name {
+  top: 25%;
+}
+
+#player2Name {
+  top: 75%;
+}
+
 @keyframes slideTop {
   0% {
     transform: translateY(-100%);
@@ -508,5 +528,14 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }
