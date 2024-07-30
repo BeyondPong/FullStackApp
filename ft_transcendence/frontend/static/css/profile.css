@@ -524,6 +524,8 @@
   align-items: center;
   justify-items: center;
   z-index: 1000;
+  font-size: 2vw;
+  text-align: center;
 }
 
 .button_container {
@@ -531,6 +533,7 @@
   justify-content: space-around;
   width: 100%;
   margin-top: 1rem;
+  font-size: 1.5vw;
 }
 
 .unregister_button {
