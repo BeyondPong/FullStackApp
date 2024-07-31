@@ -1,21 +1,19 @@
-import { postGameResult } from '../api/postAPI.js';
-import { addBlurBackground } from '../utility/blurBackGround.js';
-import beforeUnload from '../utility/beforeUnload.js';
+import { postGameResult } from "../api/postAPI.js";
+import { addBlurBackground } from "../utility/blurBackGround.js";
 
 export const remoteGame = {
   async init(socket, nickname, gameMode) {
-    // console.log(socket, nickname, gameMode);
     addBlurBackground();
-    let root = document.getElementById('app');
-    const $canvas = document.createElement('canvas');
-    const context = $canvas.getContext('2d');
+    let root = document.getElementById("app");
+    const $canvas = document.createElement("canvas");
+    const context = $canvas.getContext("2d");
     let running = false;
     let grid = 15;
     let role = false;
     let isSend = false;
     let user = {
-      player1: { name: 'player1', score: 0 },
-      player2: { name: 'player2', score: 0 },
+      player1: { name: "player1", score: 0 },
+      player2: { name: "player2", score: 0 },
     };
 
     let topPaddle = {
@@ -23,14 +21,14 @@ export const remoteGame = {
       y: 0,
       width: 0,
       height: 0,
-      name: '',
+      name: "",
     };
     let bottomPaddle = {
       x: 0,
       y: 0,
       width: 0,
       height: 0,
-      name: '',
+      name: "",
     };
     let ball = {
       x: 0,
@@ -43,7 +41,7 @@ export const remoteGame = {
 
     function gameStart() {
       let responseMessage = {
-        type: 'start_game',
+        type: "start_game",
       };
       if (socket.readyState === 1) {
         socket.send(JSON.stringify(responseMessage));
@@ -52,14 +50,14 @@ export const remoteGame = {
 
     function resend() {
       let responseMessage = {
-        type: 'resend',
+        type: "resend",
       };
       socket.send(JSON.stringify(responseMessage));
     }
 
     function sendIsFinal() {
       let responseMessage = {
-        type: 'final_game',
+        type: "final_game",
       };
       socket.send(JSON.stringify(responseMessage));
     }
@@ -67,8 +65,8 @@ export const remoteGame = {
     function updateScore(data) {
       user.player1.score = data.scores[user.player1.name] ?? user.player1.score;
       user.player2.score = data.scores[user.player2.name] ?? user.player2.score;
-      document.getElementById('player1Score').innerText = user.player1.score;
-      document.getElementById('player2Score').innerText = user.player2.score;
+      document.getElementById("player1Score").innerText = user.player1.score;
+      document.getElementById("player2Score").innerText = user.player2.score;
     }
 
     function gameStop() {
@@ -78,80 +76,96 @@ export const remoteGame = {
     async function gameEnd(data) {
       role = false;
       removeKeyboardEvent();
-      if (gameMode === 'REMOTE') await postGameResult(gameMode, user);
-      const $win = document.createElement('div');
-      $win.classList.add('win');
+      if (gameMode === "REMOTE") await postGameResult(gameMode, user);
+      const $win = document.createElement("div");
+      $win.classList.add("win");
       $win.innerHTML = `${data.winner} wins!!!`;
 
-      const $score = document.createElement('div');
-      $score.classList.add('win');
+      const $score = document.createElement("div");
+      $score.classList.add("win");
       if (data.winner === nickname) {
-        $score.innerHTML = `${data.scores[nickname]} : ${data.scores[data.loser]}`;
+        $score.innerHTML = `${data.scores[nickname]} : ${
+          data.scores[data.loser]
+        }`;
       } else {
-        $score.innerHTML = `${data.scores[data.loser]} : ${data.scores[data.winner]}`;
+        $score.innerHTML = `${data.scores[data.loser]} : ${
+          data.scores[data.winner]
+        }`;
       }
 
-      const buttonContainer = document.createElement('div');
-      buttonContainer.classList.add('remote_buttonContainer');
+      const buttonContainer = document.createElement("div");
+      buttonContainer.classList.add("remote_buttonContainer");
       buttonContainer.appendChild($score);
       buttonContainer.appendChild($win);
       if (data.is_final) {
-        const againButton = document.createElement('button');
-        againButton.classList.add('gameButton');
-        againButton.innerHTML = 'Play Again';
-        againButton.setAttribute('tabindex', '0');
-        const mainButton = document.createElement('button');
-        mainButton.classList.add('gameButton');
-        mainButton.innerHTML = 'Main';
-        mainButton.setAttribute('tabindex', '0');
+        const againButton = document.createElement("button");
+        againButton.classList.add("gameButton");
+        againButton.innerHTML = "Play Again";
+        againButton.setAttribute("tabindex", "0");
+        const mainButton = document.createElement("button");
+        mainButton.classList.add("gameButton");
+        mainButton.innerHTML = "Main";
+        mainButton.setAttribute("tabindex", "0");
         buttonContainer.appendChild(againButton);
         buttonContainer.appendChild(mainButton);
-        againButton.addEventListener('click', () => {
-          window.location.href = '/play';
+        againButton.addEventListener("click", () => {
+          window.location.href = "/play";
         });
-        againButton.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter') {
-            window.location.href = '/play';
+        againButton.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            window.location.href = "/play";
           }
         });
-        mainButton.addEventListener('click', () => {
-          window.location.href = '/';
+        mainButton.addEventListener("click", () => {
+          window.location.href = "/";
         });
-        mainButton.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter') {
-            window.location.href = '/';
+        mainButton.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            window.location.href = "/";
           }
         });
       } else {
         waitNextGame();
       }
-      document.getElementById('app').appendChild(buttonContainer);
+      document.getElementById("app").appendChild(buttonContainer);
       const canvasRect = $canvas.getBoundingClientRect();
       buttonContainer.style.top = `${canvasRect.top + canvasRect.height / 4}px`;
-      buttonContainer.style.left = `${canvasRect.left + canvasRect.width / 2}px`;
+      buttonContainer.style.left = `${
+        canvasRect.left + canvasRect.width / 2
+      }px`;
     }
 
     function render() {
       context.clearRect(0, 0, $canvas.width, $canvas.height);
 
-      context.fillStyle = '#2261BB';
+      context.fillStyle = "#2261BB";
       context.fillRect(0, 0, $canvas.width, $canvas.height);
 
-      context.fillStyle = 'lightgreen';
-      context.fillRect(topPaddle.x, topPaddle.y, topPaddle.width, topPaddle.height);
-      context.fillStyle = '#F6831B';
-      context.fillRect(bottomPaddle.x, bottomPaddle.y, bottomPaddle.width, bottomPaddle.height);
+      context.fillStyle = "lightgreen";
+      context.fillRect(
+        topPaddle.x,
+        topPaddle.y,
+        topPaddle.width,
+        topPaddle.height
+      );
+      context.fillStyle = "#F6831B";
+      context.fillRect(
+        bottomPaddle.x,
+        bottomPaddle.y,
+        bottomPaddle.width,
+        bottomPaddle.height
+      );
 
-      context.fillStyle = 'lightgrey';
+      context.fillStyle = "lightgrey";
       context.fillRect(0, 0, grid, $canvas.height);
       context.fillRect($canvas.width - grid, 0, grid, $canvas.height);
 
       context.fillRect(ball.x, ball.y, ball.width, ball.height);
-      context.fillStyle = 'lightgrey';
+      context.fillStyle = "lightgrey";
       context.fillRect(0, 0, $canvas.width, grid);
       context.fillRect(0, $canvas.height - grid, $canvas.width, $canvas.height);
 
-      context.fillStyle = 'rgba(211,211,211,0.5)';
+      context.fillStyle = "rgba(211,211,211,0.5)";
       for (let i = grid; i < $canvas.width - grid; i += grid * 2) {
         context.fillRect(i, $canvas.height / 2, grid, grid);
       }
@@ -160,14 +174,14 @@ export const remoteGame = {
     function clearScreen() {
       const children = Array.from(root.children);
       children.forEach((child) => {
-        if (child.tagName !== 'CANVAS') {
+        if (child.tagName !== "CANVAS") {
           root.removeChild(child);
         }
       });
     }
 
     async function settingGame(data) {
-      root = document.getElementById('app');
+      root = document.getElementById("app");
       while (root.childNodes.length > 0) {
         root.removeChild(root.firstChild);
       }
@@ -211,81 +225,81 @@ export const remoteGame = {
       user.player1.score = data.scores[user.player1.name];
       user.player2.score = data.scores[user.player2.name];
 
-      const $div = document.createElement('div');
-      $div.id = 'scoreBoard';
+      const $div = document.createElement("div");
+      $div.id = "scoreBoard";
 
-      const player1Container = document.createElement('div');
-      const player1Label = document.createElement('div');
+      const player1Container = document.createElement("div");
+      const player1Label = document.createElement("div");
       player1Label.innerText = user.player1.name;
-      player1Label.style.whiteSpace = 'nowrap';
-      const player1Score = document.createElement('div');
-      player1Score.id = 'player1Score';
-      player1Score.style.display = 'inline';
+      player1Label.style.whiteSpace = "nowrap";
+      const player1Score = document.createElement("div");
+      player1Score.id = "player1Score";
+      player1Score.style.display = "inline";
       player1Container.appendChild(player1Label);
       player1Container.appendChild(player1Score);
 
-      const player2Container = document.createElement('div');
-      const player2Label = document.createElement('div');
+      const player2Container = document.createElement("div");
+      const player2Label = document.createElement("div");
       player2Label.innerText = user.player2.name;
-      player2Label.style.whiteSpace = 'nowrap';
-      const player2Score = document.createElement('div');
-      player2Score.id = 'player2Score';
-      player2Score.style.display = 'inline';
+      player2Label.style.whiteSpace = "nowrap";
+      const player2Score = document.createElement("div");
+      player2Score.id = "player2Score";
+      player2Score.style.display = "inline";
       player2Container.appendChild(player2Label);
       player2Container.appendChild(player2Score);
 
       $div.appendChild(player2Container);
       $div.appendChild(player1Container);
       root.appendChild($div);
-      document.getElementById('player1Score').innerText = user.player1.score;
-      document.getElementById('player2Score').innerText = user.player2.score;
+      document.getElementById("player1Score").innerText = user.player1.score;
+      document.getElementById("player2Score").innerText = user.player2.score;
       const canvasRect = $canvas.getBoundingClientRect();
-      $div.style.position = 'absolute';
+      $div.style.position = "absolute";
       $div.style.top = `${canvasRect.top}px`;
       $div.style.left = `${canvasRect.right + 20}px`;
       $div.style.height = `${canvasRect.height}px`;
     }
 
     function onlyOnePlayer() {
-      const $div = document.createElement('div');
-      $div.id = 'scoreBoard';
-      $div.innerText = 'Other player has Left the game';
-      const buttonContainer = document.createElement('div');
-      buttonContainer.classList.add('remote_buttonContainer');
-      const againButton = document.createElement('button');
-      againButton.classList.add('gameButton');
-      againButton.innerHTML = 'Play Again';
-      againButton.setAttribute('tabindex', '0');
-      const mainButton = document.createElement('button');
-      mainButton.classList.add('gameButton');
-      mainButton.innerHTML = 'Main';
-      mainButton.setAttribute('tabindex', '0');
+      const $div = document.createElement("div");
+      $div.id = "scoreBoard";
+      $div.innerText = "Other player has Left the game";
+      const buttonContainer = document.createElement("div");
+      buttonContainer.classList.add("remote_buttonContainer");
+      const againButton = document.createElement("button");
+      againButton.classList.add("gameButton");
+      againButton.innerHTML = "Play Again";
+      againButton.setAttribute("tabindex", "0");
+      const mainButton = document.createElement("button");
+      mainButton.classList.add("gameButton");
+      mainButton.innerHTML = "Main";
+      mainButton.setAttribute("tabindex", "0");
       buttonContainer.appendChild(againButton);
       buttonContainer.appendChild(mainButton);
-      buttonContainer.style.display = 'flex';
-      buttonContainer.style.position = 'absolute';
-      buttonContainer.style.top = '50%';
-      buttonContainer.style.left = '50%';
-      $div.style.position = 'absolute';
-      $div.style.top = '40%';
-      $div.style.left = '50%';
-      $div.style.transform = 'translate(-50%, -40%)';
-      $div.style.color = 'black';
-      buttonContainer.style.transform = 'translate(-50%, -50%)';
-      againButton.addEventListener('click', () => {
-        window.location.href = '/play';
+      buttonContainer.style.display = "flex";
+      buttonContainer.style.position = "absolute";
+      buttonContainer.style.top = "50%";
+      buttonContainer.style.left = "50%";
+      $div.style.position = "absolute";
+      $div.style.top = "40%";
+      $div.style.left = "50%";
+      $div.style.transform = "translate(-50%, -40%)";
+      $div.style.color = "black";
+      buttonContainer.style.transform = "translate(-50%, -50%)";
+      againButton.addEventListener("click", () => {
+        window.location.href = "/play";
       });
-      againButton.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          window.location.href = '/play';
+      againButton.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          window.location.href = "/play";
         }
       });
-      mainButton.addEventListener('click', () => {
-        window.location.href = '/';
+      mainButton.addEventListener("click", () => {
+        window.location.href = "/";
       });
-      mainButton.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          window.location.href = '/';
+      mainButton.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          window.location.href = "/";
         }
       });
       root.appendChild($div);
@@ -295,47 +309,47 @@ export const remoteGame = {
 
     function waitNextGame() {
       running = false;
-      const $wait = document.createElement('div');
-      $wait.classList.add('loading_spinner');
+      const $wait = document.createElement("div");
+      $wait.classList.add("loading_spinner");
 
-      const spinner = document.createElement('div');
-      spinner.classList.add('spinner');
+      const spinner = document.createElement("div");
+      spinner.classList.add("spinner");
 
-      const waitText = document.createElement('p');
-      waitText.innerText = 'Wait for next game...';
+      const waitText = document.createElement("p");
+      waitText.innerText = "Wait for next game...";
 
       $wait.appendChild(spinner);
       $wait.appendChild(waitText);
       root.appendChild($wait);
 
       const canvasRect = $canvas.getBoundingClientRect();
-      $wait.style.position = 'absolute';
-      $wait.style.color = 'white';
+      $wait.style.position = "absolute";
+      $wait.style.color = "white";
       $wait.style.top = `${canvasRect.top + canvasRect.height / 2}px`;
       $wait.style.left = `${canvasRect.left + canvasRect.width / 2}px`;
-      $wait.style.transform = 'translate(-50%, -50%)';
+      $wait.style.transform = "translate(-50%, -50%)";
     }
 
     function renderFinal(data) {
       const player1 = data.final_players[0];
       const player2 = data.final_players[1];
-      const $finalRoundContainer = document.createElement('div');
-      $finalRoundContainer.id = 'finalRoundContainer';
+      const $finalRoundContainer = document.createElement("div");
+      $finalRoundContainer.id = "finalRoundContainer";
 
-      const $finalRoundTop = document.createElement('div');
-      $finalRoundTop.id = 'finalRoundTop';
-      $finalRoundTop.innerText = 'Final Round';
+      const $finalRoundTop = document.createElement("div");
+      $finalRoundTop.id = "finalRoundTop";
+      $finalRoundTop.innerText = "Final Round";
 
-      const $finalRoundBottom = document.createElement('div');
-      $finalRoundBottom.id = 'finalRoundBottom';
-      $finalRoundBottom.innerText = 'Final Round';
+      const $finalRoundBottom = document.createElement("div");
+      $finalRoundBottom.id = "finalRoundBottom";
+      $finalRoundBottom.innerText = "Final Round";
 
-      const $player1Name = document.createElement('div');
-      $player1Name.id = 'player1Name';
+      const $player1Name = document.createElement("div");
+      $player1Name.id = "player1Name";
       $player1Name.innerText = player1;
 
-      const $player2Name = document.createElement('div');
-      $player2Name.id = 'player2Name';
+      const $player2Name = document.createElement("div");
+      $player2Name.id = "player2Name";
       $player2Name.innerText = player2;
 
       $finalRoundContainer.appendChild($finalRoundTop);
@@ -357,28 +371,28 @@ export const remoteGame = {
       socket.onmessage = function (event) {
         const data = JSON.parse(event.data);
         switch (data.type) {
-          case 'game_start':
+          case "game_start":
             handleGameStart(data.data);
             break;
-          case 'update_score':
+          case "update_score":
             handleUpdateScore(data.data);
             break;
-          case 'ball_position':
+          case "ball_position":
             handleBallPosition(data.data);
             break;
-          case 'next_round':
+          case "next_round":
             handleNextRound();
             break;
-          case 'game_restart':
+          case "game_restart":
             handleGameRestart(data.data);
             break;
-          case 'end_game':
+          case "end_game":
             handleEndGame(data.data);
             break;
-          case 'paddle_position':
+          case "paddle_position":
             handlePaddlePosition(data.data);
             break;
-          case 'final_round':
+          case "final_round":
             renderFinal(data.data);
             break;
         }
@@ -464,53 +478,60 @@ export const remoteGame = {
 
     function addKeyboardEvent() {
       if (role === true) {
-        document.addEventListener('keydown', keydownHandler);
-        document.addEventListener('keyup', keyupHandler);
-        window.addEventListener("beforeunload",()=>{
-          document.removeEventListener('keydown', keydownHandler);
-          document.removeEventListener('keyup', keyupHandler);
-        }, {once:true})  
+        document.addEventListener("keydown", keydownHandler);
+        document.addEventListener("keyup", keyupHandler);
+        window.addEventListener(
+          "beforeunload",
+          () => {
+            document.removeEventListener("keydown", keydownHandler);
+            document.removeEventListener("keyup", keyupHandler);
+          },
+          { once: true }
+        );
       }
     }
 
     function removeKeyboardEvent() {
       if (role === true) {
-        document.removeEventListener('keydown', keydownHandler);
-        document.removeEventListener('keyup', keyupHandler);
+        document.removeEventListener("keydown", keydownHandler);
+        document.removeEventListener("keyup", keyupHandler);
       }
     }
 
     function keydownHandler(e) {
       let responseMessage = {};
-      if (e.code === 'ArrowLeft') {
+      if (e.code === "ArrowLeft") {
         e.preventDefault();
         responseMessage = {
-          type: 'move_paddle',
+          type: "move_paddle",
           paddle: nickname,
-          direction: 'left',
+          direction: "left",
         };
         socket.send(JSON.stringify(responseMessage));
-      } else if (e.code === 'ArrowRight') {
+      } else if (e.code === "ArrowRight") {
         e.preventDefault();
         responseMessage = {
-          type: 'move_paddle',
+          type: "move_paddle",
           paddle: nickname,
-          direction: 'right',
+          direction: "right",
         };
-    
+
         if (socket.readyState === WebSocket.OPEN) {
           socket.send(JSON.stringify(responseMessage));
         } else {
-          console.error('WebSocket is not open. ReadyState:', socket.readyState);
-        }}
+          console.error(
+            "WebSocket is not open. ReadyState:",
+            socket.readyState
+          );
+        }
+      }
     }
 
     function keyupHandler(e) {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
       }
     }
-    window.addEventListener('beforeunload', beforeUnload);
     setSocket();
     gameStart();
   },

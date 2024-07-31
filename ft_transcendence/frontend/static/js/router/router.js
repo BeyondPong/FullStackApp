@@ -1,49 +1,47 @@
-import Main from '../view/Main.js';
-import Play from '../view/Play.js';
-import Login from '../view/Login.js';
-import Profile from '../view/Profile.js';
-import NotFound from '../view/NotFound.js';
-import NotLogin from '../view/NotLogin.js';
-import Fa from '../view/2FA.js';
-import pathToRegex from '../utility/pathToRegex.js';
-import getParams from '../utility/getParams.js';
-import navigateTo from '../utility/navigateTo.js';
-import updateBackground from '../utility/updateBackground.js';
-import WebSocketManager from '../state/WebSocketManager.js';
-import beforeUnload from '../utility/beforeUnload.js';
-import { getLoginURI } from '../api/getAPI.js';
-import { postLoginCode } from '../api/postAPI.js';
-import { removeBlurBackground } from '../utility/blurBackGround.js';
-import { checkLogin } from '../utility/checkLogin.js';
-import { check2FAStatus } from '../utility/check2FA.js';
-import { checkMultipleLogin } from '../utility/checkMultipleLogin.js';
+import Main from "../view/Main.js";
+import Play from "../view/Play.js";
+import Login from "../view/Login.js";
+import Profile from "../view/Profile.js";
+import NotFound from "../view/NotFound.js";
+import NotLogin from "../view/NotLogin.js";
+import Fa from "../view/2FA.js";
+import pathToRegex from "../utility/pathToRegex.js";
+import getParams from "../utility/getParams.js";
+import navigateTo from "../utility/navigateTo.js";
+import updateBackground from "../utility/updateBackground.js";
+import WebSocketManager from "../state/WebSocketManager.js";
+import { getLoginURI } from "../api/getAPI.js";
+import { postLoginCode } from "../api/postAPI.js";
+import { removeBlurBackground } from "../utility/blurBackGround.js";
+import { checkLogin } from "../utility/checkLogin.js";
+import { check2FAStatus } from "../utility/check2FA.js";
+import { checkMultipleLogin } from "../utility/checkMultipleLogin.js";
 
 export class Router {
   constructor() {
     this.routes = [
-      { path: '/', view: Main },
-      { path: '/login', view: Login },
-      { path: '/logout', view: Main },
-      { path: '/login_code/', view: Main },
-      { path: '/2fa', view: Fa },
-      { path: '/play', view: Play },
-      { path: '/profile', view: Profile },
-      { path: '/notlogin', view: NotLogin },
-      { path: '/notfound', view: NotFound },
+      { path: "/", view: Main },
+      { path: "/login", view: Login },
+      { path: "/logout", view: Main },
+      { path: "/login_code/", view: Main },
+      { path: "/2fa", view: Fa },
+      { path: "/play", view: Play },
+      { path: "/profile", view: Profile },
+      { path: "/notlogin", view: NotLogin },
+      { path: "/notfound", view: NotFound },
     ];
   }
 
   async route() {
-    window.removeEventListener('beforeunload', beforeUnload);
     function removeAllEventListenersFromBody() {
       let oldBody = document.body;
       let newBody = oldBody.cloneNode(true);
       document.documentElement.replaceChild(newBody, oldBody);
-  }
+    }
     removeAllEventListenersFromBody();
     WebSocketManager.closeGameSocket();
     let match = this.findMatch();
-    if (!match || location.pathname === '/notfound') {
+    if (!match || location.pathname === "/notfound") {
       match = this.handleNotFound();
     }
     await this.handleRouteChange(match);
@@ -60,48 +58,48 @@ export class Router {
 
   async handleRouteChange(match) {
     switch (match.route.path) {
-      case '/login':
+      case "/login":
         await this.handleLoginRoute();
         break;
-      case '/login_code/':
+      case "/login_code/":
         await this.handleAutorhizationCode();
         break;
-      case '/2fa':
+      case "/2fa":
         await this.handle2FA(match);
         break;
-      case '/logout':
+      case "/logout":
         await this.handleLogoutRoute(match);
         break;
-      case '/profile':
+      case "/profile":
         await this.handleProfileRoute(match);
         break;
-      case '/play':
+      case "/play":
         await this.handlePlayRoute(match);
         break;
-      case '/':
+      case "/":
         await this.handleMainRoute(match);
         break;
       default:
-        updateBackground('error');
+        updateBackground("error");
         await this.render(match);
         break;
     }
   }
 
   handleNotFound() {
-    navigateTo('/notfound');
-    updateBackground('error');
+    navigateTo("/notfound");
+    updateBackground("error");
     return {
-      route: this.routes.find((r) => r.path === '/notfound'),
+      route: this.routes.find((r) => r.path === "/notfound"),
       result: [location.pathname],
     };
   }
 
   handleNotLogin() {
-    navigateTo('/notlogin');
-    updateBackground('error');
+    navigateTo("/notlogin");
+    updateBackground("error");
     return {
-      route: this.routes.find((r) => r.path === '/notlogin'),
+      route: this.routes.find((r) => r.path === "/notlogin"),
       result: [location.pathname],
     };
   }
@@ -110,16 +108,16 @@ export class Router {
     localStorage.clear();
     sessionStorage.clear();
     window.location.reload(true);
-    alert('You are already logged in another device');
+    alert("You are already logged in another device");
   };
 
   async handle2FA(match) {
     if (check2FAStatus() === true) {
-      window.location.href = '/';
+      window.location.href = "/";
       return;
     }
     if (checkLogin() === false) {
-      window.location.href = '/notlogin';
+      window.location.href = "/notlogin";
       return;
     }
 
@@ -128,7 +126,7 @@ export class Router {
       await this.clearAllCaches();
       return;
     }
-    updateBackground('normal');
+    updateBackground("normal");
     removeBlurBackground();
     await this.render(match);
     const viewInstance = new match.route.view(getParams(match));
@@ -137,43 +135,45 @@ export class Router {
 
   async handleLogoutRoute(match) {
     WebSocketManager.closeFriendSocket();
-    localStorage.removeItem('token');
-    localStorage.removeItem('2FA');
-    window.location.href = '/';
+    localStorage.removeItem("token");
+    localStorage.removeItem("2FA");
+    window.location.href = "/";
     this.handleMainRoute(match);
   }
 
   async handleAutorhizationCode() {
     const url = new URL(window.location.href);
     const params = new URLSearchParams(url.search);
-    const code = params.get('code');
+    const code = params.get("code");
     const data = await postLoginCode(code);
-    localStorage.setItem('token', data.token);
-    window.location.href = '/';
+    localStorage.setItem("token", data.token);
+    window.location.href = "/";
   }
 
   async handleMainRoute(match) {
     if (checkLogin() === true) {
       if (check2FAStatus() === false) {
-        window.location.href = '/2fa';
+        window.location.href = "/2fa";
         return;
       }
-      const token = localStorage.getItem('2FA');
-      WebSocketManager.connectFriendSocket(`${window.DAPHNE_URL}/member/login_room/?token=${token}`);
+      const token = localStorage.getItem("2FA");
+      WebSocketManager.connectFriendSocket(
+        `${window.DAPHNE_URL}/member/login_room/?token=${token}`
+      );
     } else {
       WebSocketManager.closeFriendSocket();
     }
     const viewInstance = new match.route.view(getParams(match));
     await this.render(match);
     await viewInstance.onMounted();
-    updateBackground('normal');
+    updateBackground("normal");
     removeBlurBackground();
   }
 
   async handleLoginRoute() {
-    if (localStorage.getItem('token') !== null) {
-      window.location.href = '/';
-    } else if (!localStorage.getItem('token')) {
+    if (localStorage.getItem("token") !== null) {
+      window.location.href = "/";
+    } else if (!localStorage.getItem("token")) {
       const loginURL = await getLoginURI();
       window.location.href = loginURL.redirect_url;
     }
@@ -186,33 +186,37 @@ export class Router {
       return;
     }
     if (!check2FAStatus()) {
-      window.location.href = '/2fa';
+      window.location.href = "/2fa";
       return;
     }
     await this.render(match);
     const viewInstance = new match.route.view(getParams(match));
-    const navItems = Array.from(document.getElementsByClassName('profile_nav_item'));
+    const navItems = Array.from(
+      document.getElementsByClassName("profile_nav_item")
+    );
     viewInstance.defaultTabs();
     viewInstance.addEvent();
     navItems.forEach((item, index) => {
-      item.addEventListener('click', (e) => {
+      item.addEventListener("click", (e) => {
         e.preventDefault();
-        navItems.forEach((nav) => nav.querySelector('a').classList.remove('active_tab'));
-        if (e.target.closest('a') !== null) {
-          e.target.closest('a').classList.add('active_tab');
-          const tabText = e.target.closest('a').textContent.trim();
+        navItems.forEach((nav) =>
+          nav.querySelector("a").classList.remove("active_tab")
+        );
+        if (e.target.closest("a") !== null) {
+          e.target.closest("a").classList.add("active_tab");
+          const tabText = e.target.closest("a").textContent.trim();
           viewInstance.moveTabs(tabText);
         }
       });
     });
-    updateBackground('normal');
+    updateBackground("normal");
     removeBlurBackground();
   }
 
   async handlePlayRoute(match) {
     if (checkLogin() === true) {
       if (check2FAStatus() === false) {
-        window.location.href = '/2fa';
+        window.location.href = "/2fa";
         return;
       }
     }
@@ -220,21 +224,23 @@ export class Router {
     const viewInstance = new match.route.view(getParams(match));
     const addModalEventListeners = (elementId, modalFunction) => {
       const element = document.getElementById(elementId);
-      element.addEventListener('click', modalFunction);
-      element.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+      element.addEventListener("click", modalFunction);
+      element.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
           modalFunction();
         }
       });
     };
-    addModalEventListeners('local_link', () => viewInstance.localModal());
-    addModalEventListeners('remote_link', () => viewInstance.remoteModal());
-    addModalEventListeners('tournament_link', () => viewInstance.tournamentModal());
-    updateBackground('normal');
+    addModalEventListeners("local_link", () => viewInstance.localModal());
+    addModalEventListeners("remote_link", () => viewInstance.remoteModal());
+    addModalEventListeners("tournament_link", () =>
+      viewInstance.tournamentModal()
+    );
+    updateBackground("normal");
   }
 
   async render(match) {
     const viewInstance = new match.route.view(getParams(match));
-    document.querySelector('#app').innerHTML = await viewInstance.getHtml();
+    document.querySelector("#app").innerHTML = await viewInstance.getHtml();
   }
 }
