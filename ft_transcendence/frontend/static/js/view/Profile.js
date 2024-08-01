@@ -16,14 +16,14 @@ export default class extends AbstractView {
               <header class="main_header">
                 <a href="/" id="main_link" class="nav__link" data-link>Ping? Pong!</a>
               </header>
-              <nav>
-              <a tabIndex="0" id="unregister" class="nav__link">${words[registry.lang].unregister}</a>
-              <a href="/play" id="play_link" class="nav__link" data-link>${words[registry.lang].play}</a>
-              <a href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${
-                words[registry.lang].profile
-              }</a>
+              <nav tabindex="2">
+                <a id="unregister" class="nav__link">${words[registry.lang].unregister}</a>
+                <a href="/play" id="play_link" class="nav__link" data-link>${words[registry.lang].play}</a>
+                <a href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${
+                  words[registry.lang].profile
+                }</a>
               </nav>
-              <section class="modal_container">
+              <section tabindex="1" class="modal_container">
                 <div class="modal_content profile_modal">
                   <ul class="profile_nav">
                     <li class="profile_nav_item"><a href="#" class="information">${
@@ -365,7 +365,8 @@ export default class extends AbstractView {
         const profileHTML = `
         <div class="profile_content_elements">
             <div class="profile_img_container">
-              <div class="profile_img" style="background-image: url(/static/assets/${data.profile_img}.png);">
+              <div class="profile_img">
+                <img src="/static/assets/${data.profile_img}.png" alt="my profile avatar" />
                 <button tabindex="0" class="pencil-profile" id="avatar_edit"><i tabindex="0" class="fa-solid fa-pencil"></i></button>
               </div>
             </div>
@@ -413,7 +414,7 @@ export default class extends AbstractView {
         const imgSaveButton = document.getElementsByClassName('img_save_button')[0];
         const imgCloseButton = document.getElementsByClassName('img_close_button')[0];
         const avatarList = Array.from(document.getElementsByClassName('profile_img_select'));
-        const profileImage = document.getElementsByClassName('profile_img')[0];
+        const profileImage = document.getElementsByClassName('profile_img')[0].querySelector('img');
         let imgId;
         let currentAvatarId = data.profile_img;
 
@@ -428,25 +429,25 @@ export default class extends AbstractView {
 
         imgSaveButton.addEventListener('click', async () => {
           if (imgId === undefined) {
-            profileImage.style.backgroundImage = `url(/static/assets/${currentAvatarId}.png)`;
+            profileImage.src = `/static/assets/${currentAvatarId}.png`;
             imgId = currentAvatarId;
           } else if (currentAvatarId === imgId) {
-            profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
+            profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           } else {
             await patchAvatar(imgId);
-            profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
+            profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           }
           if (imgId === undefined) {
-            profileImage.style.backgroundImage = `url(/static/assets/${currentAvatarId}.png)`;
+            profileImage.src = `/static/assets/${currentAvatarId}.png`;
             imgId = currentAvatarId;
           } else if (currentAvatarId === imgId) {
-            profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
+            profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           } else {
             await patchAvatar(imgId);
-            profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
+            profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           }
           avatarModal.classList.add('hidden');
@@ -455,14 +456,14 @@ export default class extends AbstractView {
         imgSaveButton.addEventListener('keydown', async (e) => {
           if (e.key === 'Enter') {
             if (imgId === undefined) {
-              profileImage.style.backgroundImage = `url(/static/assets/${currentAvatarId}.png)`;
+              profileImage.src = `/static/assets/${currentAvatarId}.png`;
               imgId = currentAvatarId;
             } else if (currentAvatarId === imgId) {
-              profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
+              profileImage.src = `/static/assets/${imgId}.png`;
               currentAvatarId = imgId;
             } else {
               await patchAvatar(imgId);
-              profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
+              profileImage.src = `/static/assets/${imgId}.png`;
               currentAvatarId = imgId;
             }
             avatarModal.classList.add('hidden');
