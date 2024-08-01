@@ -14,24 +14,24 @@ export default class extends AbstractView {
   async getHtml() {
     return `
               <header class="main_header">
-                <a href="/" id="main_link" class="nav__link" data-link>Ping? Pong!</a>
+                <a tabIndex="0" href="/" id="main_link" class="nav__link" data-link>Ping? Pong!</a>
               </header>
               <nav>
               <a tabIndex="0" id="unregister" class="nav__link">${words[registry.lang].unregister}</a>
-              <a href="/play" id="play_link" class="nav__link" data-link>${words[registry.lang].play}</a>
-              <a href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${
+              <a tabIndex="0" href="/play" id="play_link" class="nav__link" data-link>${words[registry.lang].play}</a>
+              <a tabIndex="0" href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${
                 words[registry.lang].profile
               }</a>
               </nav>
               <section class="modal_container">
                 <div class="modal_content profile_modal">
                   <ul class="profile_nav">
-                    <li class="profile_nav_item"><a href="#" class="information">${
+                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="information">${
                       words[registry.lang].information
                     }</a></li>
-                    <li class="profile_nav_item"><a href="#" class="history">${words[registry.lang].history}</a></li>
-                    <li class="profile_nav_item"><a href="#" class="friends">${words[registry.lang].friends}</a></li>
-                    <li class="profile_nav_item"><a href="#" class="search">${words[registry.lang].search}</a></li>
+                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="history">${words[registry.lang].history}</a></li>
+                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="friends">${words[registry.lang].friends}</a></li>
+                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="search">${words[registry.lang].search}</a></li>
                   </ul>
                   <div class="profile_content">
                   </div>
@@ -365,11 +365,10 @@ export default class extends AbstractView {
         const profileHTML = `
         <div class="profile_content_elements">
             <div class="profile_img_container">
-              <div class="profile_img">
-                <img src="/static/assets/${data.profile_img}" alt="my profile avatar" />
-              </div>
-                <button tabindex="0" class="pencil-profile" id="avatar_edit"><i tabindex="0" class="fa-solid fa-pencil"></i></button>
-              </div>
+                <div class="profile_img">
+                  <img src="/static/assets/${data.profile_img}.png" alt="my profile avatar" />
+                  <button tabindex="0" class="pencil-profile" id="avatar_edit"><i tabindex="0" class="fa-solid fa-pencil"></i></button>
+                </div>
             </div>
             <div class="profile_name_container">
               <span class="profile_name">${data.nickname}</span>
@@ -384,8 +383,8 @@ export default class extends AbstractView {
                 </div>
               </div>
               <div>
-              <div tabindex="0" class="profile_img_edit" id="status_edit"><button><i class="fa-solid fa-pencil"></i></button></div>
-              <div tabindex="0" class="profile_status_save hidden" id="status_save"><button><i class="fa-solid fa-check"></i></button></div>
+                <div tabindex="0" class="profile_img_edit" id="status_edit"><button><i class="fa-solid fa-pencil"></i></button></div>
+                <div tabindex="0" class="profile_status_save hidden" id="status_save"><button><i class="fa-solid fa-check"></i></button></div>
               </div>
             </div>
             <span class="profile_count">${data.win_cnt}${words[registry.lang].win} ${data.lose_cnt}${words[registry.lang].lose
@@ -415,7 +414,6 @@ export default class extends AbstractView {
         const imgSaveButton = document.getElementsByClassName('img_save_button')[0];
         const imgCloseButton = document.getElementsByClassName('img_close_button')[0];
         const avatarList = Array.from(document.getElementsByClassName('profile_img_select'));
-        // const profileImage = document.getElementsByClassName('profile_img')[0];
         const profileImage = document.getElementsByClassName('profile_img')[0].querySelector('img');
         let imgId;
         let currentAvatarId = data.profile_img;
@@ -431,30 +429,24 @@ export default class extends AbstractView {
 
         imgSaveButton.addEventListener('click', async () => {
           if (imgId === undefined) {
-            // profileImage.style.backgroundImage = `url(/static/assets/${currentAvatarId}.png)`;
             profileImage.src = `/static/assets/${currentAvatarId}.png`;
             imgId = currentAvatarId;
           } else if (currentAvatarId === imgId) {
-            // profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
             profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           } else {
             await patchAvatar(imgId);
-            // profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
             profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           }
           if (imgId === undefined) {
-            // profileImage.style.backgroundImage = `url(/static/assets/${currentAvatarId}.png)`;
             profileImage.src = `/static/assets/${currentAvatarId}.png`;
             imgId = currentAvatarId;
           } else if (currentAvatarId === imgId) {
-            // profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
             profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           } else {
             await patchAvatar(imgId);
-            // profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
             profileImage.src = `/static/assets/${imgId}.png`;
             currentAvatarId = imgId;
           }
@@ -464,16 +456,13 @@ export default class extends AbstractView {
         imgSaveButton.addEventListener('keydown', async (e) => {
           if (e.key === 'Enter') {
             if (imgId === undefined) {
-              // profileImage.style.backgroundImage = `url(/static/assets/${currentAvatarId}.png)`;
               profileImage.src = `/static/assets/${currentAvatarId}.png`;
               imgId = currentAvatarId;
             } else if (currentAvatarId === imgId) {
-              // profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
               profileImage.src = `/static/assets/${imgId}.png`;
               currentAvatarId = imgId;
             } else {
               await patchAvatar(imgId);
-              // profileImage.style.backgroundImage = `url(/static/assets/${imgId}.png)`;
               profileImage.src = `/static/assets/${imgId}.png`;
               currentAvatarId = imgId;
             }
