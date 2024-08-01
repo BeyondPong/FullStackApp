@@ -1,5 +1,7 @@
 import { postGameResult } from "../api/postAPI.js";
 import { addBlurBackground } from "../utility/blurBackGround.js";
+import {webSocketBlur, webSocketFocus} from "../utility/webSocketFocus.js"
+import WebSocketManager from '../state/WebSocketManager.js'
 
 export const remoteGame = {
   async init(socket, nickname, gameMode) {
@@ -10,7 +12,6 @@ export const remoteGame = {
     let running = false;
     let grid = 15;
     let role = false;
-    // let isSend = false;
     let user = {
       player1: { name: "player1", score: 0 },
       player2: { name: "player2", score: 0 },
@@ -38,22 +39,24 @@ export const remoteGame = {
     };
 
     let targetBall = { x: ball.x, y: ball.y };
+    window.addEventListener('blur', webSocketBlur);
+    window.addEventListener('focus', webSocketFocus);
 
     function gameStart() {
       let responseMessage = {
         type: "start_game",
       };
       if (socket.readyState === 1) {
+        // focus out
+        if (WebSocketManager.isGameSocketFocus == false)
+        {
+          WebSocketManager.closeGameSocket();
+          window.location.href = "/";
+          return;
+        }
         socket.send(JSON.stringify(responseMessage));
       }
     }
-
-    // function resend() {
-    //   let responseMessage = {
-    //     type: "resend",
-    //   };
-    //   socket.send(JSON.stringify(responseMessage));
-    // }
 
     function sendIsFinal() {
       let responseMessage = {
@@ -388,7 +391,6 @@ export const remoteGame = {
     }
 
     async function handleGameStart(data) {
-      isSend = true;
       await settingGame(data);
       animate();
     }
@@ -400,11 +402,6 @@ export const remoteGame = {
     }
 
     function handleBallPosition(data) {
-    //   if (isSend === false) {
-	// 	console.log("RESEND!!!!!!!!!!!!!!!!!!!!!!!!!");
-    //     resend();
-    //     isSend = true;
-    //   }
       targetBall.x = data.x;
       targetBall.y = data.y;
     }

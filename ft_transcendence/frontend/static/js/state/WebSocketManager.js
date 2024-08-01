@@ -3,6 +3,7 @@ class WebSocketManager {
     this.gameSocket = null;
     this.friendSocket = null;
     this.isGameSocketConnecting = false;
+    this.isGameSocketFocus = true;
   }
 
   returnGameSocket() {

@@ -125,6 +125,14 @@ export default class extends AbstractView {
       WebSocketManager.connectGameSocket(`${window.DAPHNE_URL}/play/${mode}/${roomName}/${this.realname}/?token=${token}`);
       let socket = WebSocketManager.returnGameSocket();
       const loadingSpinner = document.getElementById('loading_spinner');
+
+      window.addEventListener('blur', () => {
+        WebSocketManager.isGameSocketFocus = false;
+      });
+      window.addEventListener('focus', () => {
+        WebSocketManager.isGameSocketFocus = true;
+      });
+
       socket.onopen = (event) => {
         if (mode === 'TOURNAMENT') {
           this.tournamentNickNameModal(this.realname, roomName, socket);
@@ -150,6 +158,13 @@ export default class extends AbstractView {
         const data = JSON.parse(event.data);
         loadingSpinner.style.display = 'none';
         if (data.type === 'start_game') {
+          // focus out.
+          if (WebSocketManager.isGameSocketFocus == false)
+          {
+            WebSocketManager.closeGameSocket();
+            window.location.href = "/";
+            return;
+          }
           const countdownContainer = document.querySelector('#countdown_container');
           countdownContainer.style.display = 'flex';
           const $app = document.getElementById('app');

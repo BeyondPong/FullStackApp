@@ -16,6 +16,7 @@ import { removeBlurBackground } from "../utility/blurBackGround.js";
 import { checkLogin } from "../utility/checkLogin.js";
 import { check2FAStatus } from "../utility/check2FA.js";
 import { checkMultipleLogin } from "../utility/checkMultipleLogin.js";
+import {webSocketBlur, webSocketFocus} from "../utility/webSocketFocus.js"
 
 export class Router {
   constructor() {
@@ -38,6 +39,8 @@ export class Router {
       let newBody = oldBody.cloneNode(true);
       document.documentElement.replaceChild(newBody, oldBody);
     }
+    window.removeEventListener('blur', webSocketBlur);
+    window.removeEventListener('focus', webSocketFocus);
     removeAllEventListenersFromBody();
     WebSocketManager.closeGameSocket();
     let match = this.findMatch();
