@@ -5,6 +5,7 @@ import { localGame } from '../game/localGame.js';
 import { remoteGame } from '../game/remoteGame.js';
 import { getRoomName, getProfileData } from '../api/getAPI.js';
 import WebSocketManager from '../state/WebSocketManager.js';
+import {webSocketFocus, webSocketBlur} from "../utility/webSocketFocus.js"
 export default class extends AbstractView {
   constructor(params) {
     super(params);
@@ -126,12 +127,8 @@ export default class extends AbstractView {
       let socket = WebSocketManager.returnGameSocket();
       const loadingSpinner = document.getElementById('loading_spinner');
 
-      window.addEventListener('blur', () => {
-        WebSocketManager.isGameSocketFocus = false;
-      });
-      window.addEventListener('focus', () => {
-        WebSocketManager.isGameSocketFocus = true;
-      });
+      window.addEventListener('blur', webSocketBlur);
+      window.addEventListener('focus', webSocketFocus);
 
       socket.onopen = (event) => {
         if (mode === 'TOURNAMENT') {
