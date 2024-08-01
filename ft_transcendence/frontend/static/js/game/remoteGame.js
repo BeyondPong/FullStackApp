@@ -10,7 +10,7 @@ export const remoteGame = {
     let running = false;
     let grid = 15;
     let role = false;
-    let isSend = false;
+    // let isSend = false;
     let user = {
       player1: { name: "player1", score: 0 },
       player2: { name: "player2", score: 0 },
@@ -48,12 +48,12 @@ export const remoteGame = {
       }
     }
 
-    function resend() {
-      let responseMessage = {
-        type: "resend",
-      };
-      socket.send(JSON.stringify(responseMessage));
-    }
+    // function resend() {
+    //   let responseMessage = {
+    //     type: "resend",
+    //   };
+    //   socket.send(JSON.stringify(responseMessage));
+    // }
 
     function sendIsFinal() {
       let responseMessage = {
@@ -331,8 +331,6 @@ export const remoteGame = {
     }
 
     function renderFinal(data) {
-      const player1 = data.final_players[0];
-      const player2 = data.final_players[1];
       const $finalRoundContainer = document.createElement("div");
       $finalRoundContainer.id = "finalRoundContainer";
 
@@ -344,18 +342,8 @@ export const remoteGame = {
       $finalRoundBottom.id = "finalRoundBottom";
       $finalRoundBottom.innerText = "Final Round";
 
-      const $player1Name = document.createElement("div");
-      $player1Name.id = "player1Name";
-      $player1Name.innerText = player1;
-
-      const $player2Name = document.createElement("div");
-      $player2Name.id = "player2Name";
-      $player2Name.innerText = player2;
-
       $finalRoundContainer.appendChild($finalRoundTop);
       $finalRoundContainer.appendChild($finalRoundBottom);
-      $finalRoundContainer.appendChild($player1Name);
-      $finalRoundContainer.appendChild($player2Name);
       root.appendChild($finalRoundContainer);
 
       setTimeout(() => {
@@ -412,10 +400,11 @@ export const remoteGame = {
     }
 
     function handleBallPosition(data) {
-      if (resend === false) {
-        resend();
-        isSend = true;
-      }
+    //   if (isSend === false) {
+	// 	console.log("RESEND!!!!!!!!!!!!!!!!!!!!!!!!!");
+    //     resend();
+    //     isSend = true;
+    //   }
       targetBall.x = data.x;
       targetBall.y = data.y;
     }
