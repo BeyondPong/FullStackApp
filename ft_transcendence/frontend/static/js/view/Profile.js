@@ -17,21 +17,21 @@ export default class extends AbstractView {
                 <a tabIndex="0" href="/" id="main_link" class="nav__link" data-link>Ping? Pong!</a>
               </header>
               <nav>
-              <a tabIndex="0" id="unregister" class="nav__link">${words[registry.lang].unregister}</a>
-              <a tabIndex="0" href="/play" id="play_link" class="nav__link" data-link>${words[registry.lang].play}</a>
-              <a tabIndex="0" href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;">${
+              <a id="unregister" class="nav__link" tabindex="1">${words[registry.lang].unregister}</a>
+              <a href="/play" id="play_link" class="nav__link" data-link tabindex="2">${words[registry.lang].play}</a>
+              <a href="/profile" id="profile_link" class="nav__link" data-link style="pointer-events: none; color: grey; text-decoration: none;" tabindex="3">${
                 words[registry.lang].profile
               }</a>
               </nav>
               <section class="modal_container">
                 <div class="modal_content profile_modal">
                   <ul class="profile_nav">
-                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="information">${
+                    <li class="profile_nav_item"><a href="#" class="information" tabindex="1">${
                       words[registry.lang].information
                     }</a></li>
-                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="history">${words[registry.lang].history}</a></li>
-                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="friends">${words[registry.lang].friends}</a></li>
-                    <li tabIndex="0" class="profile_nav_item"><a href="#" class="search">${words[registry.lang].search}</a></li>
+                    <li class="profile_nav_item"><a href="#" class="history" tabindex="2">${words[registry.lang].history}</a></li>
+                    <li class="profile_nav_item"><a href="#" class="friends" tabindex="3">${words[registry.lang].friends}</a></li>
+                    <li class="profile_nav_item"><a href="#" class="search" tabindex="0">${words[registry.lang].search}</a></li>
                   </ul>
                   <div class="profile_content">
                   </div>
